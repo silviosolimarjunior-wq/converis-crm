@@ -1,130 +1,149 @@
-from flask import Flask, render_template_string, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template_string, request, redirect, url_for, send_from_directory, session
 import os
 
 app = Flask(__name__)
+app.secret_key = 'supersecretkey'
 
+# Dados globais do CRM
 leads = [
     {"id": 1, "nome": "Silvio Solimar silva da silva junior", "servico": "Financiamento/Veículos", "telefone": "51990113071", "valor": "54.00", "status": "Pré-Venda"}
 ]
 
 mensagens_chat = [
-    {"remetente": "Cliente (Silvio)", "texto": "Olá! Gostaria de informações sobre o contrato.", "hora": "22:30"},
+    {"remetente": "Cliente", "texto": "Olá! Gostaria de informações sobre o contrato.", "hora": "22:30"},
     {"remetente": "Atendente (Aquiles)", "texto": "Olá Silvio! Vamos verificar o seu cadastro agora.", "hora": "22:31"}
 ]
 
 catalogo_servicos = [
-    {"titulo": "Lei do Superendividamento", "desc": "Como Renegociar Dívidas e Proteger o seu Mínimo Existencial. Renegociação judicial ou extrajudicial com foco em readequação e fim dos juros abusivos."},
-    {"titulo": "Empréstimo Consignado do INSS", "desc": "Redução de até 50% na parcela. Análise do contrato, verificação de taxas, encargos e suporte especializado para aposentados e pensionistas."},
-    {"titulo": "Dívida do Cartão de Crédito", "desc": "Saiu do controle e virou bola de neve? Análise especializada de juros altos, pagamento mínimo e renegociação para alcançar parcelas e custos mais justos."},
-    {"titulo": "Parcelas Atrasadas (Financiamentos)", "desc": "Soluções judiciais e extrajudicial para contratos de veículos, consórcios e financiamentos com parcelas em atraso."}
+    {"titulo": "Lei do Superendividamento", "desc": "Como Renegociar Dívidas e Proteger o seu Mínimo Existencial. Foco em readequação e fim dos juros abusivos."},
+    {"titulo": "Empréstimo Consignado do INSS", "desc": "Redução de até 50% na parcela com análise completa de contratos e taxas para aposentados e pensionistas."},
+    {"titulo": "Dívida do Cartão de Crédito", "desc": "Soluções para juros altos, pagamento mínimo e renegociação de faturas que viraram bola de neve."},
+    {"titulo": "Parcelas Atrasadas (Financiamentos)", "desc": "Soluções judiciais e extrajudiciais para veículos, consórcios e contratos com atraso."}
 ]
 
 modulos_treinamento = [
-    {"titulo": "1. Abordagem Inicial e Empatia", "desc": "Entenda a dor do cliente (dívidas, superendividamento, juros abusivos). Ouça com atenção e demonstre que ele não está sozinho."},
-    {"titulo": "2. Análise Contratual e Diagnóstico", "desc": "Instruções sobre como solicitar os extratos e contratos ao cliente para verificar taxas, encargos e margem consignável."},
-    {"titulo": "3. Argumentação de Vendas e Fechamento", "desc": "Como apresentar os benefícios da negociação (proteção do mínimo existencial, redução de parcelas e segurança jurídica)."},
-    {"titulo": "4. Utilização do CRM e Pós-Venda", "desc": "Como mover os leads pelo pipeline (Pré-Venda ➔ Vendas ➔ Contratos Fechados) e manter o acompanhamento ativo via WhatsApp."}
+    {"titulo": "1. Abordagem Inicial e Empatia", "desc": "Entenda a dor do cliente (dívidas, superendividamento, juros abusivos) e demonstre segurança."},
+    {"titulo": "2. Análise Contratual e Diagnóstico", "desc": "Instruções sobre como solicitar os extratos e contratos ao cliente para verificar taxas e margem."},
+    {"titulo": "3. Argumentação de Vendas e Fechamento", "desc": "Como apresentar os benefícios da negociação e fechar o contrato com o cliente."},
+    {"titulo": "4. Utilização do CRM e Pós-Venda", "desc": "Como mover os leads pelo pipeline e manter o acompanhamento ativo via WhatsApp."}
 ]
 
-# TELA DO CLIENTE COM CHAT INTEGRADO E WHATSAPP
-CLIENT_TEMPLATE = '''
+# ETAPA 1 DO CLIENTE: Preenchimento de Dados
+FORM_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONVERIS - Soluções Financeiras</title>
-    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0b132b">
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; }
-        header { background: #0b132b; padding: 20px; border-bottom: 2px solid #ffb703; display: flex; align-items: center; justify-content: space-between; }
-        .logo-area { display: flex; align-items: center; gap: 12px; }
-        .logo-badge { background: #7209b7; color: white; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; }
-        .container { max-width: 900px; margin: 20px auto; padding: 15px; }
-        .hero { background: linear-gradient(135deg, #1c2541, #0b132b); border: 1px solid #3a506b; padding: 30px 20px; border-radius: 12px; text-align: center; margin-bottom: 25px; }
-        .hero h1 { color: #ffb703; margin-top: 0; font-size: 26px; }
-        .hero p { color: #8d99ae; font-size: 15px; margin-bottom: 25px; }
-        .btn-cta { background: #2ec4b6; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(46, 196, 182, 0.4); }
-        .section-title { color: #ffb703; font-size: 20px; margin-bottom: 15px; border-bottom: 1px solid #3a506b; padding-bottom: 8px; }
-        .catalog-card { background: #1c2541; border: 1px solid #3a506b; padding: 18px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #ffb703; }
-        .catalog-card h3 { margin: 0 0 8px 0; color: #ffffff; font-size: 18px; }
-        .catalog-card p { margin: 0 0 15px 0; font-size: 14px; color: #d8dee9; line-height: 1.5; }
-        .btn-whats { background: #2ec4b6; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; }
-        
-        .chat-client-box { background: #1c2541; border: 1px solid #3a506b; border-radius: 12px; padding: 20px; margin-bottom: 30px; }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 4px; font-size: 12px; color: #8d99ae; }
-        input, textarea { width: 100%; padding: 10px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; font-size: 14px; }
-        textarea { height: 80px; resize: none; }
-        .submit-chat { background: #ffb703; color: #0b132b; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; }
-
-        footer { text-align: center; padding: 25px; color: #8d99ae; font-size: 13px; border-top: 1px solid #1c2541; margin-top: 40px; }
+        body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { background: #1c2541; padding: 30px; border-radius: 12px; border: 1px solid #3a506b; width: 100%; max-width: 450px; text-align: center; }
+        .logo-badge { background: #7209b7; color: white; width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin: 0 auto 20px; }
+        h1 { color: #ffb703; font-size: 24px; margin-bottom: 10px; }
+        p { color: #8d99ae; font-size: 14px; margin-bottom: 25px; }
+        .form-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 13px; color: #8d99ae; }
+        input { width: 100%; padding: 12px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; font-size: 14px; }
+        button { background: #ffb703; color: #0b132b; border: none; padding: 14px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-top: 15px; }
+        .team-link { display: block; margin-top: 20px; color: #2ec4b6; font-size: 12px; text-decoration: none; }
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo-area">
-            <div class="logo-badge">∞</div>
-            <div>
-                <h2 style="margin:0; font-size:20px;">CONVERIS</h2>
-                <span style="font-size:12px; color: #8d99ae;">SOLUÇÕES FINANCEIRAS • JUDICIAL E EXTRAJUDICIAL</span>
+    <div class="box">
+        <div class="logo-badge">∞</div>
+        <h1>CONVERIS</h1>
+        <p>Preencha seus dados para iniciar o atendimento personalizado.</p>
+        <form action="/etapa2" method="POST">
+            <div class="form-group">
+                <label>Seu Nome Completo *</label>
+                <input type="text" name="nome" required placeholder="Digite seu nome">
             </div>
-        </div>
-        <a href="/painel" style="background: #1c2541; color: #ffb703; border: 1px solid #3a506b; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold;">🔒 Área da Equipe</a>
-    </header>
-
-    <div class="container">
-        <div class="hero">
-            <h1>Mais que negociação, tranquilidade para o seu futuro.</h1>
-            <p>Especialistas na Lei do Superendividamento, Empréstimo Consignado INSS, Cartão de Crédito e Financiamentos. Atendimento imediato!</p>
-            <a href="https://wa.me/5551999797731?text=Olá,%20gostaria%20de%20atendimento%20e%20análise%20do%20meu%20contrato." target="_blank" class="btn-cta">💬 Falar direto no WhatsApp</a>
-        </div>
-
-        <!-- Caixa para o cliente enviar mensagem para o chat do app E ir para o WhatsApp -->
-        <div class="chat-client-box">
-            <h3 style="margin-top:0; color: #ffb703; font-size: 18px;">💬 Iniciar Atendimento com a Equipe</h3>
-            <p style="font-size: 13px; color: #8d99ae;">Envie sua dúvida abaixo. A mensagem vai direto para o nosso painel interno de atendimento e também abrirá o nosso WhatsApp!</p>
-            
-            <form action="/enviar_cliente" method="POST">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div class="form-group">
-                        <label>Seu Nome *</label>
-                        <input type="text" name="nome_cliente" required placeholder="Digite seu nome completo">
-                    </div>
-                    <div class="form-group">
-                        <label>Seu WhatsApp / Telefone *</label>
-                        <input type="text" name="tel_cliente" required placeholder="51999999999">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Sua Dúvida ou Mensagem *</label>
-                    <textarea name="texto_cliente" required placeholder="Ex: Gostaria de saber mais sobre a Lei do Superendividamento..."></textarea>
-                </div>
-                <button type="submit" class="submit-chat">Enviar para o App da Converis & WhatsApp</button>
-            </form>
-        </div>
-
-        <div class="section-title">📦 Nossos Serviços & Catálogo</div>
-        
-        {% for serv in catalogo_servicos %}
-        <div class="catalog-card">
-            <h3>{{ serv.titulo }}</h3>
-            <p>{{ serv.desc }}</p>
-            <a href="https://wa.me/5551999797731?text=Olá,%2520gostaria%2520de%2520saber%2520mais%2520sobre:%2520{{ serv.titulo }}" target="_blank" class="btn-whats">📱 Consultar este serviço via WhatsApp</a>
-        </div>
-        {% endfor %}
+            <div class="form-group">
+                <label>Seu WhatsApp / Telefone *</label>
+                <input type="text" name="telefone" required placeholder="51999999999">
+            </div>
+            <button type="submit">Avançar para Serviços</button>
+        </form>
+        <a href="/painel" class="team-link">🔒 Área da Equipe (CRM)</a>
     </div>
-
-    <footer>
-        <p>📞 Atendimento Telefónico / WhatsApp: (51) 99979-7731<br>© 2026 Converis Soluções Financeiras. Todos os direitos reservados.</p>
-    </footer>
 </body>
 </html>
 '''
 
-# TELA DO PAINEL DA EQUIPE (/painel)
+# ETAPA 2 DO CLIENTE: Escolha do Serviço
+SERVICE_TEMPLATE = '''
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONVERIS - Escolha o Serviço</title>
+    <meta name="theme-color" content="#0b132b">
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { background: #1c2541; padding: 30px; border-radius: 12px; border: 1px solid #3a506b; width: 100%; max-width: 500px; text-align: center; }
+        h1 { color: #ffb703; font-size: 22px; margin-bottom: 8px; }
+        p { color: #8d99ae; font-size: 13px; margin-bottom: 20px; }
+        .service-btn { background: #0b132b; color: white; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; margin-bottom: 12px; text-align: left; transition: 0.2s; display: block; text-decoration: none; }
+        .service-btn:hover { background: #ffb703; color: #0b132b; border-color: #ffb703; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Selecione o Serviço Desejado</h1>
+        <p>Escolha a opção que melhor se adapta à sua necessidade:</p>
+        <form action="/etapa3" method="POST">
+            {% for serv in servicos %}
+            <button name="servico" value="{{ serv.titulo }}" class="service-btn">
+                <strong>{{ serv.titulo }}</strong><br>
+                <span style="font-size: 12px; color: #8d99ae; font-weight: normal;">{{ serv.desc }}</span>
+            </button>
+            {% endfor %}
+        </form>
+    </div>
+</body>
+</html>
+'''
+
+# ETAPA 3 DO CLIENTE: Informando o Redirecionamento
+REDIRECT_TEMPLATE = '''
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecionando...</title>
+    <meta name="theme-color" content="#0b132b">
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { background: #1c2541; padding: 40px; border-radius: 12px; border: 1px solid #3a506b; width: 100%; max-width: 450px; text-align: center; }
+        .spinner { border: 4px solid #3a506b; border-top: 4px solid #ffb703; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h1 { color: #ffb703; font-size: 22px; margin-bottom: 15px; }
+        p { color: #8d99ae; font-size: 14px; line-height: 1.5; }
+    </style>
+    <script>
+        setTimeout(function() {
+            window.location.href = "{{ whatsapp_url }}";
+        }, 3500);
+    </script>
+</head>
+<body>
+    <div class="box">
+        <div class="spinner"></div>
+        <h1>Tudo pronto!</h1>
+        <p>Você está a ser redirecionado para um consultor especialista da Converis via WhatsApp para finalizar o seu atendimento.</p>
+    </div>
+</body>
+</html>
+'''
+
+# PAINEL INTERNO DA EQUIPE (Com todos os botões e ferramentas recuperados)
 PANEL_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -143,7 +162,7 @@ PANEL_TEMPLATE = '''
         .container { max-width: 1100px; margin: 15px auto; padding: 10px; }
         
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .nav-btn { background: #1c2541; color: white; border: none; padding: 10px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; border: 1px solid #3a506b; display: inline-flex; align-items: center; gap: 6px; }
+        .nav-btn { background: #1c2541; color: white; border: 1px solid #3a506b; padding: 10px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
         .nav-btn.active { background: #ffb703; color: #0b132b; border: none; }
         
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -157,11 +176,6 @@ PANEL_TEMPLATE = '''
         .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; margin-bottom: 12px; }
         .training-card { background: #0b132b; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #2ec4b6; }
         
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 4px; font-size: 12px; color: #8d99ae; }
-        input, select { width: 100%; padding: 10px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; font-size: 14px; }
-        
-        button.submit-btn { background: #ffb703; color: #0b132b; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; }
         .btn-whats { background: #2ec4b6; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; }
         
         .chat-box { background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; padding: 12px; height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
@@ -182,15 +196,15 @@ PANEL_TEMPLATE = '''
                 <span style="font-size:11px; color: #8d99ae;">PAINEL INTERNO • AQUILES VENDAS</span>
             </div>
         </div>
-        <a href="/" style="background: #1c2541; color: #2ec4b6; border: 1px solid #3a506b; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold;">🌐 Ver Site do Cliente</a>
+        <a href="/" class="nav-btn" style="background: #1c2541; color: #2ec4b6; border-color: #2ec4b6;">🌐 Voltar ao Fluxo Cliente</a>
     </header>
 
     <div class="container">
-        <!-- Menu Superior Completo -->
+        <!-- TODOS OS BOTÕES DE NAVEGAÇÃO INTERNA RECUPERADOS -->
         <div class="nav-tabs">
             <a href="/painel" class="nav-btn active">🏠 Início</a>
-            <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b;">📋 Gestão de Leads</a>
-            <a href="#treinamento-section" class="nav-btn" style="background: #4cc9f0; color: #0b132b;">🎓 Treinamento</a>
+            <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b; border:none;">📋 Gestão de Leads</a>
+            <a href="#treinamento-section" class="nav-btn" style="background: #4cc9f0; color: #0b132b; border:none;">🎓 Treinamento</a>
             <a href="#chat-section" class="nav-btn" style="background: #28385e;">💬 Chat ao Vivo</a>
             <a href="#dre-section" class="nav-btn" style="background: #7209b7;">📊 DRE</a>
         </div>
@@ -213,10 +227,10 @@ PANEL_TEMPLATE = '''
 
         <!-- Chat de Atendimento -->
         <div class="section-box" id="chat-section">
-            <h3>💬 Chat de Atendimento ao Cliente (Mensagens do Site)</h3>
+            <h3>💬 Chat de Atendimento ao Cliente</h3>
             <div class="chat-box">
                 {% for msg in mensagens_chat %}
-                    {% if "Cliente" in msg.remetente %}
+                    {% if "Atendente" not in msg.remetente %}
                     <div class="chat-msg msg-cliente">
                         <strong>{{ msg.remetente }}:</strong> {{ msg.texto }}
                     </div>
@@ -228,7 +242,7 @@ PANEL_TEMPLATE = '''
                 {% endfor %}
             </div>
             <form action="/enviar_chat" method="POST" style="display: flex; gap: 8px;">
-                <input type="text" name="texto_mensagem" required placeholder="Digite a resposta para o cliente..." style="flex: 1;">
+                <input type="text" name="texto_mensagem" required placeholder="Digite a resposta para o cliente..." style="flex: 1; padding: 10px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; font-size: 14px;">
                 <button type="submit" style="background: #2ec4b6; color: white; border: none; padding: 0 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar</button>
             </form>
         </div>
@@ -246,7 +260,7 @@ PANEL_TEMPLATE = '''
 
         <!-- Pipeline de Leads -->
         <div class="section-box" id="leads-section">
-            <h3>🔵 Pipeline de Atendimento & Gestão de Clientes</h3>
+            <h3>📋 Pipeline de Atendimento & Gestão de Clientes</h3>
             {% for lead in leads %}
             <div class="lead-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -285,33 +299,36 @@ PANEL_TEMPLATE = '''
 </html>
 '''
 
+# Rotas da Aplicação
 @app.route('/')
-def index_cliente():
-    return render_template_string(CLIENT_TEMPLATE, catalogo_servicos=catalogo_servicos)
+def index():
+    return render_template_string(FORM_TEMPLATE)
+
+@app.route('/etapa2', methods=['POST'])
+def etapa2():
+    session['nome'] = request.form.get('nome')
+    session['telefone'] = request.form.get('telefone')
+    return render_template_string(SERVICE_TEMPLATE, servicos=catalogo_servicos)
+
+@app.route('/etapa3', methods=['POST'])
+def etapa3():
+    servico = request.form.get('servico')
+    nome = session.get('nome')
+    telefone = session.get('telefone')
+    
+    if nome and telefone:
+        # Regista automaticamente no CRM / Leads
+        leads.append({"id": len(leads) + 1, "nome": nome, "servico": servico, "telefone": telefone, "valor": "0.00", "status": "Pré-Venda"})
+        mensagens_chat.append({"remetente": f"Cliente ({nome})", "texto": f"Interesse no serviço: {servico}", "hora": "Agora"})
+
+    mensagem = f"Olá, meu nome é {nome}. Gostaria de atendimento sobre o serviço: {servico}."
+    whatsapp_url = f"https://wa.me/5551999797731?text={mensagem}"
+    
+    return render_template_string(REDIRECT_TEMPLATE, whatsapp_url=whatsapp_url)
 
 @app.route('/painel')
 def painel_equipe():
     return render_template_string(PANEL_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat, modulos_treinamento=modulos_treinamento)
-
-@app.route('/manifest.json')
-def manifest():
-    return send_from_directory('.', 'manifest.json')
-
-@app.route('/enviar_cliente', methods=['POST'])
-def enviar_cliente():
-    nome = request.form.get('nome_cliente')
-    telefone = request.form.get('tel_cliente')
-    texto = request.form.get('texto_cliente')
-    
-    if nome and texto:
-        # Adiciona a mensagem do cliente ao chat do painel interno
-        mensagens_chat.append({"remetente": f"Cliente ({nome})", "texto": texto, "hora": "Agora"})
-        # Opcional: Adiciona automaticamente como lead na pré-venda
-        leads.append({"id": len(leads) + 1, "nome": nome, "servico": "Atendimento via Site", "telefone": telefone, "valor": "0.00", "status": "Pré-Venda"})
-    
-    # Redireciona o cliente para o WhatsApp oficial da Converis com a mensagem preenchida
-    whatsapp_url = f"https://wa.me/5551999797731?text=Olá,%20meu%20nome%20é%20{nome}.%20{texto}"
-    return redirect(whatsapp_url)
 
 @app.route('/enviar_chat', methods=['POST'])
 def enviar_chat():
@@ -319,6 +336,10 @@ def enviar_chat():
     if texto:
         mensagens_chat.append({"remetente": "Atendente (Aquiles)", "texto": texto, "hora": "Agora"})
     return redirect(url_for('painel_equipe') + '#chat-section')
+
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('.', 'manifest.json')
 
 if __name__ == '__main__':
     app.run(port=5000)
