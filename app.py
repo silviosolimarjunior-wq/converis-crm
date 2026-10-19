@@ -27,9 +27,11 @@ HTML_TEMPLATE = '''
         .logo-badge { background: #7209b7; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; }
         .container { max-width: 1100px; margin: 15px auto; padding: 10px; }
         
+        /* Barra de navegação com botões Início, Chat e DRE no topo */
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .nav-btn { background: #1c2541; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; border: 1px solid #3a506b; }
+        .nav-btn { background: #1c2541; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; border: 1px solid #3a506b; display: inline-flex; align-items: center; gap: 6px; }
         .nav-btn.active { background: #ffb703; color: #0b132b; border: none; }
+        .nav-btn:hover { opacity: 0.9; }
         
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .card-metric { background: #1c2541; padding: 18px; border-radius: 8px; border: 1px solid #3a506b; }
@@ -68,15 +70,17 @@ HTML_TEMPLATE = '''
     </header>
 
     <div class="container">
-        <!-- Navegação com abas -->
+        <!-- Menu com opções Início, Chat e DRE no topo -->
         <div class="nav-tabs">
-            <a href="/" class="nav-btn active">📋 Gestão de Leads (Atendimento)</a>
-            <a href="#" class="nav-btn">🏠 Dashboard</a>
+            <a href="/" class="nav-btn active">🏠 Início</a>
+            <a href="#chat-section" class="nav-btn" style="background: #28385e;">💬 Chat ao Vivo</a>
+            <a href="#dre-section" class="nav-btn" style="background: #7209b7;">📊 DRE Corporativa</a>
+            <a href="#" class="nav-btn">📋 Gestão de Leads (Atendimento)</a>
             <a href="#" class="nav-btn">📦 Catálogo</a>
             <a href="#" class="nav-btn">🎓 Treinamento</a>
         </div>
 
-        <!-- Cards de Caixa -->
+        <!-- Cards de Métricas -->
         <div class="grid-cards">
             <div class="card-metric">
                 <h3>JÁ RECEBIDO (CAIXA)</h3>
@@ -92,8 +96,8 @@ HTML_TEMPLATE = '''
             </div>
         </div>
 
-        <!-- Chat de Atendimento -->
-        <div class="section-box">
+        <!-- Chat de Atendimento ao Cliente -->
+        <div class="section-box" id="chat-section">
             <h3>💬 Chat de Atendimento ao Cliente</h3>
             <div class="chat-box">
                 {% for msg in mensagens_chat %}
@@ -142,7 +146,7 @@ HTML_TEMPLATE = '''
             </form>
         </div>
 
-        <!-- Cards de Leads e WhatsApp -->
+        <!-- Leads e WhatsApp -->
         <div class="section-box">
             <h3>🔵 Novo Lead (Entrada WhatsApp)</h3>
             {% for lead in leads %}
@@ -157,7 +161,7 @@ HTML_TEMPLATE = '''
         </div>
 
         <!-- DRE Corporativa Detalhada -->
-        <div class="section-box">
+        <div class="section-box" id="dre-section">
             <h3>📊 DRE Corporativa Detalhada</h3>
             <div class="dre-linha">
                 <span>(+) Receita Total Contratada</span>
@@ -203,7 +207,7 @@ def enviar_chat():
     texto = request.form.get('texto_mensagem')
     if texto:
         mensagens_chat.append({"remetente": "Atendente (Aquiles)", "texto": texto})
-    return redirect(url_for('index'))
+    return redirect(url_for('index') + '#chat-section')
 
 if __name__ == '__main__':
     app.run()
