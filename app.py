@@ -2,9 +2,14 @@ from flask import Flask, render_template_string, request, redirect, url_for
 
 app = Flask(__name__)
 
-# Dados iniciais do CRM
+# Dados iniciais do CRM e mensagens do chat
 leads = [
     {"id": 1, "nome": "Silvio Solimar", "servico": "Financiamento/Veículos", "telefone": "51990113071", "valor": "54.00", "status": "Novo Lead"}
+]
+
+mensagens_chat = [
+    {"remetente": "Cliente (Silvio)", "texto": "Olá, gostaria de saber mais detalhes sobre a regularização.", "hora": "19:45"},
+    {"remetente": "Atendente (Equipe)", "texto": "Olá Silvio! Claro, vamos encaminhar a sua proposta agora mesmo.", "hora": "19:46"}
 ]
 
 HTML_TEMPLATE = '''
@@ -13,7 +18,7 @@ HTML_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS - Painel de Vendas</title>
+    <title>CONVERIS - Painel de Vendas e Atendimento</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; }
@@ -34,12 +39,19 @@ HTML_TEMPLATE = '''
         .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-size: 13px; color: #8d99ae; }
-        input, select { width: 100%; padding: 12px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; }
+        input, select, textarea { width: 100%; padding: 12px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; }
         button.submit-btn { background: #ffb703; color: #0b132b; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; }
         button.submit-btn:hover { background: #fb8500; }
         .dre-linha { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #28385e; font-size: 14px; }
         .dre-total { font-weight: bold; color: #4cc9f0; font-size: 16px; margin-top: 10px; }
         .btn-whats { background: #2ec4b6; color: white; padding: 8px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-block; margin-top: 10px; }
+        
+        /* Estilos do Chat */
+        .chat-container { background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; padding: 15px; height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .chat-msg { padding: 10px 14px; border-radius: 8px; max-width: 80%; font-size: 14px; }
+        .chat-cliente { background: #28385e; align-self: flex-start; }
+        .chat-atendente { background: #3a506b; align-self: flex-end; border-left: 3px solid #ffb703; }
+        .chat-msg span { display: block; font-size: 10px; color: #8d99ae; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -54,7 +66,7 @@ HTML_TEMPLATE = '''
     </header>
 
     <div class="container">
-        <!-- Navegação com botão Início -->
+        <!-- Navegação -->
         <div class="nav-tabs">
             <a href="/" class="nav-btn active">🏠 Início</a>
             <a href="#" class="nav-btn">📋 Gestão de Leads (Atendimento)</a>
@@ -76,6 +88,31 @@ HTML_TEMPLATE = '''
                 <h3>TOTAL INADIMPLENTE</h3>
                 <div class="value" style="color: #e71d36;">R$ 0,00</div>
             </div>
+        </div>
+
+        <!-- Painel de Chat com o Cliente -->
+        <div class="section-box">
+            <h3>💬 Chat de Atendimento Direto & WhatsApp</h3>
+            <div class="chat-container">
+                {% for msg in mensagens_chat %}
+                    {% if "Cliente" in msg.remetente %}
+                    <div class="chat-msg chat-cliente">
+                        <strong>{{ msg.remetente }}:</strong> {{ msg.texto }}
+                        <span>{{ msg.hora }}</span>
+                    </div>
+                    {% else %}
+                    <div class="chat-msg chat-atendente">
+                        <strong>{{ msg.remetente }}:</strong> {{ msg.texto }}
+                        <span>{{ msg.hora }}</span>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <form action="/enviar_chat" method="POST" style="display: flex; gap: 10px;">
+                <input type="text" name="texto_mensagem" required placeholder="Digite a resposta para o cliente..." style="flex: 1;">
+                <button type="submit" style="background: #2ec4b6; color: white; border: none; padding: 0 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar</button>
+            </form>
         </div>
 
         <div class="section-box">
@@ -106,14 +143,14 @@ HTML_TEMPLATE = '''
         </div>
 
         <div class="section-box">
-            <h3>🔵 Novo Lead (Entrada WhatsApp)</h3>
+            <h3>🔵 Leads Ativos e Integração WhatsApp</h3>
             {% for lead in leads %}
             <div class="lead-card">
                 <strong>{{ lead.nome }}</strong><br>
                 <span style="color: #8d99ae; font-size: 13px;">📁 Serviço: {{ lead.servico }}</span><br>
                 <span style="color: #8d99ae; font-size: 13px;">📞 Tel: {{ lead.telefone }}</span>
                 <div style="color: #2ec4b6; font-weight: bold; margin-top: 5px;">R$ {{ lead.valor }}</div>
-                <a href="https://wa.me/{{ lead.telefone }}" target="_blank" class="btn-whats">📲 Falar no Whats</a>
+                <a href="https://wa.me/{{ lead.telefone }}?text=Olá%20{{ lead.nome }},%20estamos%20a%20entrar%20em%20contacto%20pelo%20Converis%20CRM." target="_blank" class="btn-whats">📲 Conversar no WhatsApp</a>
             </div>
             {% endfor %}
         </div>
@@ -147,7 +184,7 @@ HTML_TEMPLATE = '''
 
 @app.route('/')
 def index():
-    return render_template_string(HTML_TEMPLATE, leads=leads)
+    return render_template_string(HTML_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat)
 
 @app.route('/add', methods=['POST'])
 def add_lead():
@@ -157,6 +194,13 @@ def add_lead():
     telefone = request.form.get('telefone')
     valor = request.form.get('valor')
     leads.append({"id": novo_id, "nome": nome, "servico": servico, "telefone": telefone, "valor": valor, "status": "Novo Lead"})
+    return redirect(url_for('index'))
+
+@app.route('/enviar_chat', methods=['POST'])
+def enviar_chat():
+    texto = request.form.get('texto_mensagem')
+    if texto:
+        mensagens_chat.append({"remetente": "Atendente (Equipe)", "texto": texto, "hora": "Agora"})
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
