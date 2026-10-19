@@ -28,21 +28,12 @@ def init_db():
             tipo_contrato TEXT
         )
     ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS mensagens (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            remetente TEXT,
-            texto TEXT,
-            hora TEXT
-        )
-    ''')
     conn.commit()
     
     cursor.execute('SELECT COUNT(*) FROM leads')
     if cursor.fetchone()[0] == 0:
         cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status, tipo_contrato) VALUES (?, ?, ?, ?, ?, ?)",
                        ("Silvio Solimar silva da silva junior", "Financiamento/Veículos", "51990113071", "54.00", "Pré-Venda", "Contrato de Defesa de Financiamento"))
-    
     conn.commit()
     conn.close()
 
