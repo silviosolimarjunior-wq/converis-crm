@@ -26,7 +26,7 @@ modulos_treinamento = [
     {"titulo": "4. Utilização do CRM e Pós-Venda", "desc": "Como mover os leads pelo pipeline (Pré-Venda ➔ Vendas ➔ Contratos Fechados) e manter o acompanhamento ativo via WhatsApp."}
 ]
 
-# TELA DO CLIENTE (O que o cliente vê ao abrir o link principal)
+# TELA DO CLIENTE COM CHAT INTEGRADO E WHATSAPP
 CLIENT_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -52,6 +52,14 @@ CLIENT_TEMPLATE = '''
         .catalog-card h3 { margin: 0 0 8px 0; color: #ffffff; font-size: 18px; }
         .catalog-card p { margin: 0 0 15px 0; font-size: 14px; color: #d8dee9; line-height: 1.5; }
         .btn-whats { background: #2ec4b6; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; }
+        
+        .chat-client-box { background: #1c2541; border: 1px solid #3a506b; border-radius: 12px; padding: 20px; margin-bottom: 30px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-size: 12px; color: #8d99ae; }
+        input, textarea { width: 100%; padding: 10px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; font-size: 14px; }
+        textarea { height: 80px; resize: none; }
+        .submit-chat { background: #ffb703; color: #0b132b; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; }
+
         footer { text-align: center; padding: 25px; color: #8d99ae; font-size: 13px; border-top: 1px solid #1c2541; margin-top: 40px; }
     </style>
 </head>
@@ -70,8 +78,32 @@ CLIENT_TEMPLATE = '''
     <div class="container">
         <div class="hero">
             <h1>Mais que negociação, tranquilidade para o seu futuro.</h1>
-            <p>Especialistas na Lei do Superendividamento, Empréstimo Consignado INSS, Cartão de Crédito e Financiamentos. Atendimento em todo o Brasil!</p>
-            <a href="https://wa.me/5551999797731?text=Olá,%20gostaria%20de%20atendimento%20e%20análise%20do%20meu%20contrato." target="_blank" class="btn-cta">💬 Falar com a Converis pelo WhatsApp</a>
+            <p>Especialistas na Lei do Superendividamento, Empréstimo Consignado INSS, Cartão de Crédito e Financiamentos. Atendimento imediato!</p>
+            <a href="https://wa.me/5551999797731?text=Olá,%20gostaria%20de%20atendimento%20e%20análise%20do%20meu%20contrato." target="_blank" class="btn-cta">💬 Falar direto no WhatsApp</a>
+        </div>
+
+        <!-- Caixa para o cliente enviar mensagem para o chat do app E ir para o WhatsApp -->
+        <div class="chat-client-box">
+            <h3 style="margin-top:0; color: #ffb703; font-size: 18px;">💬 Iniciar Atendimento com a Equipe</h3>
+            <p style="font-size: 13px; color: #8d99ae;">Envie sua dúvida abaixo. A mensagem vai direto para o nosso painel interno de atendimento e também abrirá o nosso WhatsApp!</p>
+            
+            <form action="/enviar_cliente" method="POST">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Seu Nome *</label>
+                        <input type="text" name="nome_cliente" required placeholder="Digite seu nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label>Seu WhatsApp / Telefone *</label>
+                        <input type="text" name="tel_cliente" required placeholder="51999999999">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Sua Dúvida ou Mensagem *</label>
+                    <textarea name="texto_cliente" required placeholder="Ex: Gostaria de saber mais sobre a Lei do Superendividamento..."></textarea>
+                </div>
+                <button type="submit" class="submit-chat">Enviar para o App da Converis & WhatsApp</button>
+            </form>
         </div>
 
         <div class="section-title">📦 Nossos Serviços & Catálogo</div>
@@ -113,11 +145,10 @@ PANEL_TEMPLATE = '''
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
         .nav-btn { background: #1c2541; color: white; border: none; padding: 10px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; border: 1px solid #3a506b; display: inline-flex; align-items: center; gap: 6px; }
         .nav-btn.active { background: #ffb703; color: #0b132b; border: none; }
-        .nav-btn:hover { opacity: 0.9; }
         
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .card-metric { background: #1c2541; padding: 18px; border-radius: 8px; border: 1px solid #3a506b; }
-        .card-metric h3 { margin: 0 0 8px 0; font-size: 11px; color: #8d99ae; letter-spacing: 0.5px; }
+        .card-metric h3 { margin: 0 0 8px 0; font-size: 11px; color: #8d99ae; }
         .card-metric .value { font-size: 22px; font-weight: bold; }
         
         .section-box { background: #1c2541; padding: 18px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #3a506b; }
@@ -133,16 +164,13 @@ PANEL_TEMPLATE = '''
         button.submit-btn { background: #ffb703; color: #0b132b; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; }
         .btn-whats { background: #2ec4b6; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; }
         
-        .chat-box { background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; padding: 12px; height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .chat-box { background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; padding: 12px; height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
         .chat-msg { padding: 8px 12px; border-radius: 6px; max-width: 85%; font-size: 13px; }
         .msg-cliente { background: #28385e; align-self: flex-start; }
         .msg-atendente { background: #3a506b; align-self: flex-end; border-left: 3px solid #ffb703; }
         
         .dre-linha { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #28385e; font-size: 13px; }
         .dre-total { font-weight: bold; color: #4cc9f0; font-size: 15px; margin-top: 10px; }
-
-        #pwa-install-banner { display: none; background: #7209b7; color: white; padding: 14px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold; justify-content: space-between; align-items: center; border: 1px solid #9d4edd; }
-        #pwa-install-btn { background: #ffb703; color: #0b132b; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -158,23 +186,13 @@ PANEL_TEMPLATE = '''
     </header>
 
     <div class="container">
-        <!-- Banner PWA -->
-        <div id="pwa-install-banner">
-            <span>📲 Deseja instalar o Converis CRM como Aplicativo?</span>
-            <button id="pwa-install-btn">Instalar App</button>
-        </div>
-
         <!-- Menu Superior Completo -->
         <div class="nav-tabs">
             <a href="/painel" class="nav-btn active">🏠 Início</a>
             <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b;">📋 Gestão de Leads</a>
             <a href="#treinamento-section" class="nav-btn" style="background: #4cc9f0; color: #0b132b;">🎓 Treinamento</a>
-            <a href="#leads-section" class="nav-btn" style="background: #e76f51;">⏳ Pré-Venda</a>
-            <a href="#leads-section" class="nav-btn" style="background: #2a9d8f;">🤝 Vendas</a>
-            <a href="#leads-section" class="nav-btn" style="background: #264653;">✅ Concluídas</a>
-            <a href="#leads-section" class="nav-btn" style="background: #e9c46a; color: #0b132b;">📄 Contratos</a>
             <a href="#chat-section" class="nav-btn" style="background: #28385e;">💬 Chat ao Vivo</a>
-            <a href="#dre-section" class="nav-btn" style="background: #7209b7;">📊 DRE Corporativa</a>
+            <a href="#dre-section" class="nav-btn" style="background: #7209b7;">📊 DRE</a>
         </div>
 
         <!-- Cards de Caixa -->
@@ -193,21 +211,9 @@ PANEL_TEMPLATE = '''
             </div>
         </div>
 
-        <!-- Módulos de Treinamento -->
-        <div class="section-box" id="treinamento-section">
-            <h3>🎓 Treinamento da Equipe & Orientações de Vendas</h3>
-            <p style="font-size: 13px; color: #8d99ae; margin-top:0;">Orientações práticas para o atendimento de excelência da Aquiles Vendas.</p>
-            {% for mod in modulos_treinamento %}
-            <div class="training-card">
-                <strong>{{ mod.titulo }}</strong>
-                <p style="margin: 6px 0 0 0; font-size: 13px; color: #d8dee9;">{{ mod.desc }}</p>
-            </div>
-            {% endfor %}
-        </div>
-
         <!-- Chat de Atendimento -->
         <div class="section-box" id="chat-section">
-            <h3>💬 Chat de Atendimento ao Cliente</h3>
+            <h3>💬 Chat de Atendimento ao Cliente (Mensagens do Site)</h3>
             <div class="chat-box">
                 {% for msg in mensagens_chat %}
                     {% if "Cliente" in msg.remetente %}
@@ -222,49 +228,23 @@ PANEL_TEMPLATE = '''
                 {% endfor %}
             </div>
             <form action="/enviar_chat" method="POST" style="display: flex; gap: 8px;">
-                <input type="text" name="texto_mensagem" required placeholder="Digite a mensagem para o cliente..." style="flex: 1;">
+                <input type="text" name="texto_mensagem" required placeholder="Digite a resposta para o cliente..." style="flex: 1;">
                 <button type="submit" style="background: #2ec4b6; color: white; border: none; padding: 0 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar</button>
             </form>
         </div>
 
-        <!-- Formulário de Cadastro -->
-        <div class="section-box">
-            <h3>➕ Cadastrar Novo Lead Manualmente</h3>
-            <form action="/add" method="POST">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div class="form-group">
-                        <label>Nome do Cliente *</label>
-                        <input type="text" name="nome" required placeholder="Nome do Cliente">
-                    </div>
-                    <div class="form-group">
-                        <label>Serviço (ex: INSS, Cartão)</label>
-                        <input type="text" name="servico" required placeholder="Ex: Financiamento/Veículos">
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div class="form-group">
-                        <label>WhatsApp</label>
-                        <input type="text" name="telefone" required placeholder="51999999999">
-                    </div>
-                    <div class="form-group">
-                        <label>Valor da Dívida (R$)</label>
-                        <input type="text" name="valor" required placeholder="54.00">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Etapa Inicial</label>
-                    <select name="status">
-                        <option value="Pré-Venda">⏳ Pré-Venda (Espera)</option>
-                        <option value="Em Atendimento">🤝 Vendas (Em Atendimento)</option>
-                        <option value="Concluída">✅ Concluída</option>
-                        <option value="Contrato Fechado">📄 Contrato Fechado</option>
-                    </select>
-                </div>
-                <button type="submit" class="submit-btn">Adicionar Card</button>
-            </form>
+        <!-- Módulos de Treinamento -->
+        <div class="section-box" id="treinamento-section">
+            <h3>🎓 Treinamento da Equipe & Orientações de Vendas</h3>
+            {% for mod in modulos_treinamento %}
+            <div class="training-card">
+                <strong>{{ mod.titulo }}</strong>
+                <p style="margin: 6px 0 0 0; font-size: 13px; color: #d8dee9;">{{ mod.desc }}</p>
+            </div>
+            {% endfor %}
         </div>
 
-        <!-- Pipeline de Leads e Atendimento -->
+        <!-- Pipeline de Leads -->
         <div class="section-box" id="leads-section">
             <h3>🔵 Pipeline de Atendimento & Gestão de Clientes</h3>
             {% for lead in leads %}
@@ -281,7 +261,7 @@ PANEL_TEMPLATE = '''
             {% endfor %}
         </div>
 
-        <!-- DRE Corporativa Detalhada -->
+        <!-- DRE Corporativa -->
         <div class="section-box" id="dre-section">
             <h3>📊 DRE Corporativa Detalhada</h3>
             <div class="dre-linha">
@@ -296,38 +276,11 @@ PANEL_TEMPLATE = '''
                 <span>(=) Receita Líquida</span>
                 <span>R$ 49,68</span>
             </div>
-            <div class="dre-linha">
-                <span>(-) Custos e Despesas Operacionais</span>
-                <span style="color: #e71d36;">R$ 0,00</span>
-            </div>
             <div class="dre-total">
-                (=) LUCRO LÍQUIDO DO EXERCÍCIO: <span style="color: #2ec4b6;">R$ 49,68</span>
+                (=) LUCRO LÍQUIDO: <span style="color: #2ec4b6;">R$ 49,68</span>
             </div>
         </div>
     </div>
-
-    <!-- Script de Instalação PWA -->
-    <script>
-        let deferredPrompt;
-        const banner = document.getElementById('pwa-install-banner');
-        const installBtn = document.getElementById('pwa-install-btn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            banner.style.display = 'flex';
-        });
-
-        installBtn.addEventListener('click', () => {
-            banner.style.display = 'none';
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    deferredPrompt = null;
-                });
-            }
-        });
-    </script>
 </body>
 </html>
 '''
@@ -344,23 +297,28 @@ def painel_equipe():
 def manifest():
     return send_from_directory('.', 'manifest.json')
 
-@app.route('/add', methods=['POST'])
-def add_lead():
-    novo_id = len(leads) + 1
-    nome = request.form.get('nome')
-    servico = request.form.get('servico')
-    telefone = request.form.get('telefone')
-    valor = request.form.get('valor')
-    status = request.form.get('status') or 'Pré-Venda'
-    leads.append({"id": novo_id, "nome": nome, "servico": servico, "telefone": telefone, "valor": valor, "status": status})
-    return redirect(url_for('painel_equipe') + '#leads-section')
+@app.route('/enviar_cliente', methods=['POST'])
+def enviar_cliente():
+    nome = request.form.get('nome_cliente')
+    telefone = request.form.get('tel_cliente')
+    texto = request.form.get('texto_cliente')
+    
+    if nome and texto:
+        # Adiciona a mensagem do cliente ao chat do painel interno
+        mensagens_chat.append({"remetente": f"Cliente ({nome})", "texto": texto, "hora": "Agora"})
+        # Opcional: Adiciona automaticamente como lead na pré-venda
+        leads.append({"id": len(leads) + 1, "nome": nome, "servico": "Atendimento via Site", "telefone": telefone, "valor": "0.00", "status": "Pré-Venda"})
+    
+    # Redireciona o cliente para o WhatsApp oficial da Converis com a mensagem preenchida
+    whatsapp_url = f"https://wa.me/5551999797731?text=Olá,%20meu%20nome%20é%20{nome}.%20{texto}"
+    return redirect(whatsapp_url)
 
 @app.route('/enviar_chat', methods=['POST'])
 def enviar_chat():
     texto = request.form.get('texto_mensagem')
     if texto:
-        mensagens_chat.append({"remetente": "Atendente (Aquiles)", "texto": texto})
+        mensagens_chat.append({"remetente": "Atendente (Aquiles)", "texto": texto, "hora": "Agora"})
     return redirect(url_for('painel_equipe') + '#chat-section')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5000)
