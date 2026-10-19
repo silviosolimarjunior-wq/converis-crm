@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, redirect, url_for, send_from_directory, session, Response
+from flask import Flask, render_template_string, request, redirect, url_for, send_from_directory, session
 import sqlite3
 import os
 
@@ -455,11 +455,9 @@ def painel_equipe():
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
         
-        # Leads ativos (que ainda não fecharam contrato)
         cursor.execute("SELECT * FROM leads WHERE status != 'Contrato Fechado'")
         leads = cursor.fetchall()
         
-        # Contratos fechados
         cursor.execute("SELECT * FROM leads WHERE status = 'Contrato Fechado'")
         contratos_lista = cursor.fetchall()
         
