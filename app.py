@@ -43,6 +43,11 @@ def init_db():
         cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status, tipo_contrato) VALUES (?, ?, ?, ?, ?, ?)",
                        ("Silvio Solimar silva da silva junior", "Financiamento/Veículos", "51990113071", "54.00", "Pré-Venda", "Contrato de Defesa de Financiamento"))
     
+    cursor.execute('SELECT COUNT(*) FROM mensagens')
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)", ("Cliente", "Olá! Gostaria de informações sobre o contrato.", "22:30"))
+        cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)", ("Atendente (Aquiles)", "Olá Silvio! Vamos verificar o seu cadastro agora.", "22:31"))
+    
     conn.commit()
     conn.close()
 
@@ -186,9 +191,6 @@ PANEL_TEMPLATE = '''
         .logo-badge { background: #7209b7; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; }
         .container { max-width: 1100px; margin: 15px auto; padding: 10px; }
         
-        .nav-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
-        .nav-btn { background: #1c2541; color: white; border: 1px solid #3a506b; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
-        
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .card-metric { background: #1c2541; padding: 16px; border-radius: 8px; border: 1px solid #3a506b; }
         .card-metric h3 { margin: 0 0 8px 0; font-size: 11px; color: #8d99ae; }
@@ -198,9 +200,18 @@ PANEL_TEMPLATE = '''
         .section-box h3 { margin-top: 0; color: #ffb703; font-size: 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #3a506b; padding-bottom: 8px; }
         
         .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .training-card { background: #0b132b; border: 1px solid #3a506b; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #2ec4b6; }
         
         .btn-whats { background: #2ec4b6; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; }
         .btn-action { background: #ffb703; color: #0b132b; padding: 6px 12px; border-radius: 4px; border: none; font-size: 12px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 5px; }
+        
+        .chat-box { background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; padding: 12px; height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .chat-msg { padding: 8px 12px; border-radius: 6px; max-width: 85%; font-size: 13px; }
+        .msg-cliente { background: #28385e; align-self: flex-start; }
+        .msg-atendente { background: #3a506b; align-self: flex-end; border-left: 3px solid #ffb703; }
+        
+        .dre-linha { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #28385e; font-size: 13px; }
+        .dre-total { font-weight: bold; color: #4cc9f0; font-size: 15px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -212,11 +223,12 @@ PANEL_TEMPLATE = '''
                 <span style="font-size:11px; color: #8d99ae;">PAINEL INTERNO • AQUILES VENDAS</span>
             </div>
         </div>
-        <a href="/" class="nav-btn" style="background: #1c2541; color: #2ec4b6; border-color: #2ec4b6;">🌐 Ver Início do Cliente</a>
+        <a href="/" class="nav-btn" style="background: #1c2541; color: #2ec4b6; border: 1px solid #2ec4b6; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold;">🌐 Ver Início do Cliente</a>
     </header>
 
     <div class="container">
-        <div class="section-box" id="dashboard-section">
+        <!-- Dashboard -->
+        <div class="section-box">
             <h3>🏠 Dashboard & Métricas Financeiras</h3>
             <div class="grid-cards" style="margin-bottom:0;">
                 <div class="card-metric">
@@ -234,8 +246,9 @@ PANEL_TEMPLATE = '''
             </div>
         </div>
 
-        <div class="section-box" id="leads-section">
-            <h3>📋 Gestão de Leads & Funil de Atendimento</h3>
+        <!-- Gestão de Leads & Contratos -->
+        <div class="section-box">
+            <h3>📋 Gestão de Leads & Contratos</h3>
             
             <h4 style="color: #8d99ae; font-size: 13px; margin-bottom: 8px;">Leads em Atendimento:</h4>
             {% if leads %}
@@ -279,6 +292,70 @@ PANEL_TEMPLATE = '''
             {% else %}
                 <p style="color: #8d99ae; font-size: 13px; font-style: italic;">Ainda nenhum contrato fechado.</p>
             {% endif %}
+        </div>
+
+        <!-- Catálogo de Serviços -->
+        <div class="section-box">
+            <h3>📦 Catálogo de Serviços Disponíveis</h3>
+            {% for serv in catalogo_servicos %}
+            <div class="lead-card">
+                <strong>{{ serv.titulo }}</strong>
+                <p style="margin: 4px 0 0 0; font-size: 12px; color: #d8dee9;">{{ serv.desc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Chat ao Vivo -->
+        <div class="section-box">
+            <h3>💬 Chat ao Vivo com Clientes</h3>
+            <div class="chat-box">
+                {% for msg in mensagens_chat %}
+                    {% if "Atendente" not in msg[1] %}
+                    <div class="chat-msg msg-cliente">
+                        <strong>{{ msg[1] }}:</strong> {{ msg[2] }}
+                    </div>
+                    {% else %}
+                    <div class="chat-msg msg-atendente">
+                        <strong>{{ msg[1] }}:</strong> {{ msg[2] }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <form action="/enviar_chat" method="POST" style="display: flex; gap: 8px;">
+                <input type="text" name="texto_mensagem" required placeholder="Digite a resposta para o cliente..." style="flex: 1; padding: 10px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; font-size: 14px;">
+                <button type="submit" style="background: #2ec4b6; color: white; border: none; padding: 0 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar</button>
+            </form>
+        </div>
+
+        <!-- Treinamento -->
+        <div class="section-box">
+            <h3>🎓 Treinamento da Equipa</h3>
+            {% for mod in modulos_treinamento %}
+            <div class="training-card">
+                <strong>{{ mod.titulo }}</strong>
+                <p style="margin: 6px 0 0 0; font-size: 13px; color: #d8dee9;">{{ mod.desc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- DRE Corporativa -->
+        <div class="section-box">
+            <h3>📊 DRE Corporativa</h3>
+            <div class="dre-linha">
+                <span>(+) Receita Total Contratada</span>
+                <span style="color: #2ec4b6;">R$ {{ total_areceber }}</span>
+            </div>
+            <div class="dre-linha">
+                <span>(-) Deduções e Impostos (~8%)</span>
+                <span style="color: #e71d36;">R$ 4,32</span>
+            </div>
+            <div class="dre-linha" style="font-weight: bold; background: #0b132b; padding: 6px;">
+                <span>(=) Receita Líquida</span>
+                <span>R$ 49,68</span>
+            </div>
+            <div class="dre-total">
+                (=) LUCRO LÍQUIDO: <span style="color: #2ec4b6;">R$ 49,68</span>
+            </div>
         </div>
     </div>
 </body>
@@ -364,18 +441,23 @@ def painel_equipe():
         cursor.execute("SELECT * FROM leads WHERE status = 'Contrato Fechado'")
         contratos_lista = cursor.fetchall()
         
+        cursor.execute("SELECT * FROM mensagens")
+        mensagens_chat = cursor.fetchall()
+        
         conn.close()
     except Exception:
         leads = []
         contratos_lista = []
+        mensagens_chat = []
     
     total_areceber = "54.00"
     total_recebido = "0,00"
     total_fechados = len(contratos_lista)
     
     return render_template_string(PANEL_TEMPLATE, leads=leads, contratos_lista=contratos_lista, 
-                                  total_areceber=total_areceber, total_recebido=total_recebido, 
-                                  total_fechados=total_fechados)
+                                  mensagens_chat=mensagens_chat, catalogo_servicos=catalogo_servicos,
+                                  modulos_treinamento=modulos_treinamento, total_areceber=total_areceber, 
+                                  total_recebido=total_recebido, total_fechados=total_fechados)
 
 @app.route('/atualizar_status/<int:lead_id>/<path:novo_status>')
 def atualizar_status(lead_id, novo_status):
@@ -388,6 +470,21 @@ def atualizar_status(lead_id, novo_status):
         conn.close()
     except Exception as e:
         print("Erro ao atualizar status:", e)
+    return redirect(url_for('painel_equipe'))
+
+@app.route('/enviar_chat', methods=['POST'])
+def enviar_chat():
+    texto = request.form.get('texto_mensagem')
+    if texto:
+        try:
+            conn = sqlite3.connect(DB_NAME)
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)",
+                           ("Atendente (Aquiles)", texto, "Agora"))
+            conn.commit()
+            conn.close()
+        except Exception:
+            pass
     return redirect(url_for('painel_equipe'))
 
 @app.route('/ver_contrato/<int:lead_id>')
