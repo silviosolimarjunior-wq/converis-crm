@@ -3,7 +3,7 @@ import sqlite3
 
 app = Flask(__name__)
 app.secret_key = 'converis_secret_key'
-DB_NAME = 'converis.db'
+DB_NAME = ':memory:'
 
 CONTRATOS_POR_SERVICO = {
     "Lei do Superendividamento": "Contrato de Superendividamento",
