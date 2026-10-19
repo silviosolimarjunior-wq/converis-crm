@@ -12,6 +12,20 @@ mensagens_chat = [
     {"remetente": "Atendente (Aquiles)", "texto": "Olá Silvio! Vamos verificar o seu cadastro agora.", "hora": "22:31"}
 ]
 
+catalogo_servicos = [
+    {"titulo": "Lei do Superendividamento", "desc": "Como Renegociar Dívidas e Proteger o seu Mínimo Existencial. Renegociação judicial ou extrajudicial com foco em readequação e fim dos juros abusivos."},
+    {"titulo": "Empréstimo Consignado do INSS", "desc": "Redução de até 50% na parcela. Análise do contrato, verificação de taxas, encargos e suporte especializado para aposentados e pensionistas."},
+    {"titulo": "Dívida do Cartão de Crédito", "desc": "Saiu do controle e virou bola de neve? Análise especializada de juros altos, pagamento mínimo e renegociação para alcançar parcelas e custos mais justos."},
+    {"titulo": "Parcelas Atrasadas (Financiamentos)", "desc": "Soluções judiciais e extrajudicial para contratos de veículos, consórcios e financiamentos com parcelas em atraso."}
+]
+
+modulos_treinamento = [
+    {"titulo": "1. Abordagem Inicial e Empatia", "desc": "Entenda a dor do cliente (dívidas, superendividamento, juros abusivos). Ouça com atenção e demonstre que ele não está sozinho."},
+    {"titulo": "2. Análise Contratual e Diagnóstico", "desc": "Instruções sobre como solicitar os extratos e contratos ao cliente para verificar taxas, encargos e margem consignável."},
+    {"titulo": "3. Argumentação de Vendas e Fechamento", "desc": "Como apresentar os benefícios da negociação (proteção do mínimo existencial, redução de parcelas e segurança jurídica)."},
+    {"titulo": "4. Utilização do CRM e Pós-Venda", "desc": "Como mover os leads pelo pipeline (Pré-Venda ➔ Vendas ➔ Contratos Fechados) e manter o acompanhamento ativo via WhatsApp."}
+]
+
 HTML_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -20,7 +34,6 @@ HTML_TEMPLATE = '''
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONVERIS CRM</title>
     
-    <!-- Link essencial para o navegador reconhecer como Aplicativo -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0b132b">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -49,6 +62,9 @@ HTML_TEMPLATE = '''
         .section-box h3 { margin-top: 0; color: #ffb703; font-size: 16px; display: flex; align-items: center; gap: 8px; }
         
         .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; margin-bottom: 12px; }
+        .catalog-card { background: #0b132b; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #ffb703; }
+        .training-card { background: #0b132b; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #2ec4b6; }
+        
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 4px; font-size: 12px; color: #8d99ae; }
         input, select { width: 100%; padding: 10px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; font-size: 14px; }
@@ -64,7 +80,6 @@ HTML_TEMPLATE = '''
         .dre-linha { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #28385e; font-size: 13px; }
         .dre-total { font-weight: bold; color: #4cc9f0; font-size: 15px; margin-top: 10px; }
 
-        /* Botão / Banner de Instalação PWA */
         #pwa-install-banner { display: none; background: #7209b7; color: white; padding: 14px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold; justify-content: space-between; align-items: center; border: 1px solid #9d4edd; }
         #pwa-install-btn { background: #ffb703; color: #0b132b; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
     </style>
@@ -81,7 +96,7 @@ HTML_TEMPLATE = '''
     </header>
 
     <div class="container">
-        <!-- Banner de Instalação Dinâmico -->
+        <!-- Banner PWA -->
         <div id="pwa-install-banner">
             <span>📲 Deseja instalar o Converis CRM como Aplicativo?</span>
             <button id="pwa-install-btn">Instalar App</button>
@@ -91,9 +106,8 @@ HTML_TEMPLATE = '''
         <div class="nav-tabs">
             <a href="/" class="nav-btn active">🏠 Início</a>
             <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b;">📋 Gestão de Leads</a>
-            <a href="#" class="nav-btn">🏠 Dashboard</a>
-            <a href="#" class="nav-btn">📦 Catálogo</a>
-            <a href="#" class="nav-btn">🎓 Treinamento</a>
+            <a href="#catalogo-section" class="nav-btn" style="background: #3a506b;">📦 Catálogo</a>
+            <a href="#treinamento-section" class="nav-btn" style="background: #4cc9f0; color: #0b132b;">🎓 Treinamento</a>
             <a href="#leads-section" class="nav-btn" style="background: #e76f51;">⏳ Pré-Venda</a>
             <a href="#leads-section" class="nav-btn" style="background: #2a9d8f;">🤝 Vendas</a>
             <a href="#leads-section" class="nav-btn" style="background: #264653;">✅ Concluídas</a>
@@ -116,6 +130,31 @@ HTML_TEMPLATE = '''
                 <h3>TOTAL INADIMPLENTE / DEVENDO</h3>
                 <div class="value" style="color: #e71d36;">R$ 0,00</div>
             </div>
+        </div>
+
+        <!-- Catálogo de Serviços -->
+        <div class="section-box" id="catalogo-section">
+            <h3>📦 Catálogo de Serviços - Converis Soluções Financeiras</h3>
+            <p style="font-size: 13px; color: #8d99ae; margin-top:0;">Soluções judiciais e extrajudiciais para renegociação de dívidas e proteção do património.</p>
+            {% for serv in catalogo_servicos %}
+            <div class="catalog-card">
+                <strong>{{ serv.titulo }}</strong>
+                <p style="margin: 6px 0 0 0; font-size: 13px; color: #d8dee9;">{{ serv.desc }}</p>
+                <a href="https://wa.me/5551999797731?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20o%20serviço:%20{{ serv.titulo }}" target="_blank" class="btn-whats">📱 Consultar via Whats</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Módulos de Treinamento -->
+        <div class="section-box" id="treinamento-section">
+            <h3>🎓 Treinamento da Equipe & Orientações de Vendas</h3>
+            <p style="font-size: 13px; color: #8d99ae; margin-top:0;">Orientações práticas para o atendimento de excelência da Aquiles Vendas.</p>
+            {% for mod in modulos_treinamento %}
+            <div class="training-card">
+                <strong>{{ mod.titulo }}</strong>
+                <p style="margin: 6px 0 0 0; font-size: 13px; color: #d8dee9;">{{ mod.desc }}</p>
+            </div>
+            {% endfor %}
         </div>
 
         <!-- Chat de Atendimento -->
@@ -219,7 +258,7 @@ HTML_TEMPLATE = '''
         </div>
     </div>
 
-    <!-- Script de Instalação do PWA -->
+    <!-- Script de Instalação PWA -->
     <script>
         let deferredPrompt;
         const banner = document.getElementById('pwa-install-banner');
@@ -247,7 +286,7 @@ HTML_TEMPLATE = '''
 
 @app.route('/')
 def index():
-    return render_template_string(HTML_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat)
+    return render_template_string(HTML_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat, catalogo_servicos=catalogo_servicos, modulos_treinamento=modulos_treinamento)
 
 @app.route('/manifest.json')
 def manifest():
