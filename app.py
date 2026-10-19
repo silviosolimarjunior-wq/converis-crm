@@ -2,14 +2,14 @@ from flask import Flask, render_template_string, request, redirect, url_for
 
 app = Flask(__name__)
 
-# Dados iniciais do CRM e mensagens do chat
+# Dados em memória para Leads e Chat
 leads = [
-    {"id": 1, "nome": "Silvio Solimar", "servico": "Financiamento/Veículos", "telefone": "51990113071", "valor": "54.00", "status": "Novo Lead"}
+    {"id": 1, "nome": "Silvio Solimar silva da silva junior", "servico": "Financiamento/Veículos", "telefone": "51990113071", "valor": "54.00", "status": "Novo Lead"}
 ]
 
 mensagens_chat = [
-    {"remetente": "Cliente (Silvio)", "texto": "Olá, gostaria de saber mais detalhes sobre a regularização.", "hora": "19:45"},
-    {"remetente": "Atendente (Equipe)", "texto": "Olá Silvio! Claro, vamos encaminhar a sua proposta agora mesmo.", "hora": "19:46"}
+    {"remetente": "Cliente (Silvio)", "texto": "Olá! Gostaria de informações sobre o contrato.", "hora": "22:30"},
+    {"remetente": "Atendente (Aquiles)", "texto": "Olá Silvio! Vamos verificar o seu cadastro agora.", "hora": "22:31"}
 ]
 
 HTML_TEMPLATE = '''
@@ -18,40 +18,42 @@ HTML_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS - Painel de Vendas e Atendimento</title>
+    <title>CONVERIS - Painel de Vendas</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; }
-        header { background: #1c2541; padding: 20px; border-bottom: 2px solid #ffb703; display: flex; align-items: center; justify-content: space-between; }
+        header { background: #0b132b; padding: 15px 20px; border-bottom: 2px solid #ffb703; display: flex; align-items: center; justify-content: space-between; }
         .logo-area { display: flex; align-items: center; gap: 12px; }
-        .logo-badge { background: #7209b7; color: white; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
-        .container { max-width: 1100px; margin: 20px auto; padding: 15px; }
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .nav-btn { background: #3a506b; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; }
-        .nav-btn.active { background: #ffb703; color: #0b132b; }
-        .nav-btn:hover { opacity: 0.9; }
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .card-metric { background: #1c2541; padding: 20px; border-radius: 10px; border: 1px solid #3a506b; }
-        .card-metric h3 { margin: 0 0 10px 0; font-size: 13px; color: #8d99ae; text-transform: uppercase; }
-        .card-metric .value { font-size: 24px; font-weight: bold; color: #4cc9f0; }
-        .section-box { background: #1c2541; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #3a506b; }
-        .section-box h3 { margin-top: 0; color: #ffb703; }
-        .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-size: 13px; color: #8d99ae; }
-        input, select, textarea { width: 100%; padding: 12px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; }
-        button.submit-btn { background: #ffb703; color: #0b132b; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; }
-        button.submit-btn:hover { background: #fb8500; }
-        .dre-linha { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #28385e; font-size: 14px; }
-        .dre-total { font-weight: bold; color: #4cc9f0; font-size: 16px; margin-top: 10px; }
-        .btn-whats { background: #2ec4b6; color: white; padding: 8px 12px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-block; margin-top: 10px; }
+        .logo-badge { background: #7209b7; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; }
+        .container { max-width: 1100px; margin: 15px auto; padding: 10px; }
         
-        /* Estilos do Chat */
-        .chat-container { background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; padding: 15px; height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
-        .chat-msg { padding: 10px 14px; border-radius: 8px; max-width: 80%; font-size: 14px; }
-        .chat-cliente { background: #28385e; align-self: flex-start; }
-        .chat-atendente { background: #3a506b; align-self: flex-end; border-left: 3px solid #ffb703; }
-        .chat-msg span { display: block; font-size: 10px; color: #8d99ae; margin-top: 4px; }
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav-btn { background: #1c2541; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; border: 1px solid #3a506b; }
+        .nav-btn.active { background: #ffb703; color: #0b132b; border: none; }
+        
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .card-metric { background: #1c2541; padding: 18px; border-radius: 8px; border: 1px solid #3a506b; }
+        .card-metric h3 { margin: 0 0 8px 0; font-size: 11px; color: #8d99ae; letter-spacing: 0.5px; }
+        .card-metric .value { font-size: 22px; font-weight: bold; }
+        
+        .section-box { background: #1c2541; padding: 18px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #3a506b; }
+        .section-box h3 { margin-top: 0; color: #ffb703; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        
+        .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-size: 12px; color: #8d99ae; }
+        input, select { width: 100%; padding: 10px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; font-size: 14px; }
+        
+        button.submit-btn { background: #ffb703; color: #0b132b; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; }
+        .btn-whats { background: #2ec4b6; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; }
+        
+        .chat-box { background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; padding: 12px; height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .chat-msg { padding: 8px 12px; border-radius: 6px; max-width: 85%; font-size: 13px; }
+        .msg-cliente { background: #28385e; align-self: flex-start; }
+        .msg-atendente { background: #3a506b; align-self: flex-end; border-left: 3px solid #ffb703; }
+        
+        .dre-linha { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #28385e; font-size: 13px; }
+        .dre-total { font-weight: bold; color: #4cc9f0; font-size: 15px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -59,22 +61,22 @@ HTML_TEMPLATE = '''
         <div class="logo-area">
             <div class="logo-badge">∞</div>
             <div>
-                <h2 style="margin:0; font-size:20px;">CONVERIS CRM</h2>
+                <h2 style="margin:0; font-size:18px;">CONVERIS CRM</h2>
                 <span style="font-size:11px; color: #8d99ae;">ÁREA DA EQUIPE • AQUILES VENDAS</span>
             </div>
         </div>
     </header>
 
     <div class="container">
-        <!-- Navegação -->
+        <!-- Navegação com abas -->
         <div class="nav-tabs">
-            <a href="/" class="nav-btn active">🏠 Início</a>
-            <a href="#" class="nav-btn">📋 Gestão de Leads (Atendimento)</a>
-            <a href="#" class="nav-btn">📊 Dashboard</a>
+            <a href="/" class="nav-btn active">📋 Gestão de Leads (Atendimento)</a>
+            <a href="#" class="nav-btn">🏠 Dashboard</a>
             <a href="#" class="nav-btn">📦 Catálogo</a>
             <a href="#" class="nav-btn">🎓 Treinamento</a>
         </div>
 
+        <!-- Cards de Caixa -->
         <div class="grid-cards">
             <div class="card-metric">
                 <h3>JÁ RECEBIDO (CAIXA)</h3>
@@ -85,40 +87,38 @@ HTML_TEMPLATE = '''
                 <div class="value" style="color: #ffb703;">R$ 54,00</div>
             </div>
             <div class="card-metric">
-                <h3>TOTAL INADIMPLENTE</h3>
+                <h3>TOTAL INADIMPLENTE / DEVENDO</h3>
                 <div class="value" style="color: #e71d36;">R$ 0,00</div>
             </div>
         </div>
 
-        <!-- Painel de Chat com o Cliente -->
+        <!-- Chat de Atendimento -->
         <div class="section-box">
-            <h3>💬 Chat de Atendimento Direto & WhatsApp</h3>
-            <div class="chat-container">
+            <h3>💬 Chat de Atendimento ao Cliente</h3>
+            <div class="chat-box">
                 {% for msg in mensagens_chat %}
                     {% if "Cliente" in msg.remetente %}
-                    <div class="chat-msg chat-cliente">
+                    <div class="chat-msg msg-cliente">
                         <strong>{{ msg.remetente }}:</strong> {{ msg.texto }}
-                        <span>{{ msg.hora }}</span>
                     </div>
                     {% else %}
-                    <div class="chat-msg chat-atendente">
+                    <div class="chat-msg msg-atendente">
                         <strong>{{ msg.remetente }}:</strong> {{ msg.texto }}
-                        <span>{{ msg.hora }}</span>
                     </div>
                     {% endif %}
                 {% endfor %}
             </div>
-            
-            <form action="/enviar_chat" method="POST" style="display: flex; gap: 10px;">
-                <input type="text" name="texto_mensagem" required placeholder="Digite a resposta para o cliente..." style="flex: 1;">
-                <button type="submit" style="background: #2ec4b6; color: white; border: none; padding: 0 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar</button>
+            <form action="/enviar_chat" method="POST" style="display: flex; gap: 8px;">
+                <input type="text" name="texto_mensagem" required placeholder="Digite a mensagem para o cliente..." style="flex: 1;">
+                <button type="submit" style="background: #2ec4b6; color: white; border: none; padding: 0 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">Enviar</button>
             </form>
         </div>
 
+        <!-- Formulário de Cadastro -->
         <div class="section-box">
             <h3>➕ Cadastrar Novo Lead Manualmente</h3>
             <form action="/add" method="POST">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="form-group">
                         <label>Nome do Cliente *</label>
                         <input type="text" name="nome" required placeholder="Nome do Cliente">
@@ -128,7 +128,7 @@ HTML_TEMPLATE = '''
                         <input type="text" name="servico" required placeholder="Ex: Financiamento/Veículos">
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="form-group">
                         <label>WhatsApp</label>
                         <input type="text" name="telefone" required placeholder="51999999999">
@@ -142,19 +142,21 @@ HTML_TEMPLATE = '''
             </form>
         </div>
 
+        <!-- Cards de Leads e WhatsApp -->
         <div class="section-box">
-            <h3>🔵 Leads Ativos e Integração WhatsApp</h3>
+            <h3>🔵 Novo Lead (Entrada WhatsApp)</h3>
             {% for lead in leads %}
             <div class="lead-card">
                 <strong>{{ lead.nome }}</strong><br>
-                <span style="color: #8d99ae; font-size: 13px;">📁 Serviço: {{ lead.servico }}</span><br>
-                <span style="color: #8d99ae; font-size: 13px;">📞 Tel: {{ lead.telefone }}</span>
-                <div style="color: #2ec4b6; font-weight: bold; margin-top: 5px;">R$ {{ lead.valor }}</div>
-                <a href="https://wa.me/{{ lead.telefone }}?text=Olá%20{{ lead.nome }},%20estamos%20a%20entrar%20em%20contacto%20pelo%20Converis%20CRM." target="_blank" class="btn-whats">📲 Conversar no WhatsApp</a>
+                <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead.servico }}</span><br>
+                <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead.telefone }}</span>
+                <div style="color: #2ec4b6; font-weight: bold; margin-top: 4px;">R$ {{ lead.valor }}</div>
+                <a href="https://wa.me/{{ lead.telefone }}?text=Olá%20{{ lead.nome }},%20estamos%20a%20entrar%20em%20contacto." target="_blank" class="btn-whats">📱 Falar no Whats</a>
             </div>
             {% endfor %}
         </div>
 
+        <!-- DRE Corporativa Detalhada -->
         <div class="section-box">
             <h3>📊 DRE Corporativa Detalhada</h3>
             <div class="dre-linha">
@@ -165,7 +167,7 @@ HTML_TEMPLATE = '''
                 <span>(-) Deduções e Impostos (~8%)</span>
                 <span style="color: #e71d36;">R$ 4,32</span>
             </div>
-            <div class="dre-linha" style="font-weight: bold; background: #0b132b; padding: 8px;">
+            <div class="dre-linha" style="font-weight: bold; background: #0b132b; padding: 6px;">
                 <span>(=) Receita Líquida</span>
                 <span>R$ 49,68</span>
             </div>
@@ -200,7 +202,7 @@ def add_lead():
 def enviar_chat():
     texto = request.form.get('texto_mensagem')
     if texto:
-        mensagens_chat.append({"remetente": "Atendente (Equipe)", "texto": texto, "hora": "Agora"})
+        mensagens_chat.append({"remetente": "Atendente (Aquiles)", "texto": texto})
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
