@@ -1,18 +1,52 @@
 from flask import Flask, render_template_string, request, redirect, url_for, send_from_directory, session
+import sqlite3
 import os
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey_converis'
+app.secret_key = 'converis_secret_key'
 
-# Dados globais do CRM sincronizados
-leads = [
-    {"id": 1, "nome": "Silvio Solimar silva da silva junior", "servico": "Financiamento/Veículos", "telefone": "51990113071", "valor": "54.00", "status": "Pré-Venda"}
-]
+DB_NAME = 'converis.db'
 
-mensagens_chat = [
-    {"remetente": "Cliente", "texto": "Olá! Gostaria de informações sobre o contrato.", "hora": "22:30"},
-    {"remetente": "Atendente (Aquiles)", "texto": "Olá Silvio! Vamos verificar o seu cadastro agora.", "hora": "22:31"}
-]
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    # Tabela de Leads
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            servico TEXT,
+            telefone TEXT,
+            valor TEXT,
+            status TEXT
+        )
+    ''')
+    # Tabela de Mensagens do Chat
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS mensagens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            remetente TEXT,
+            texto TEXT,
+            hora TEXT
+        )
+    ''')
+    conn.commit()
+    
+    # Inserir dados iniciais se a tabela estiver vazia
+    cursor.execute('SELECT COUNT(*) FROM leads')
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status) VALUES (?, ?, ?, ?, ?)",
+                       ("Silvio Solimar silva da silva junior", "Financiamento/Veículos", "51990113071", "54.00", "Pré-Venda"))
+    
+    cursor.execute('SELECT COUNT(*) FROM mensagens')
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)", ("Cliente", "Olá! Gostaria de informações sobre o contrato.", "22:30"))
+        cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)", ("Atendente (Aquiles)", "Olá Silvio! Vamos verificar o seu cadastro agora.", "22:31"))
+    
+    conn.commit()
+    conn.close()
+
+init_db()
 
 catalogo_servicos = [
     {"titulo": "Lei do Superendividamento", "desc": "Como Renegociar Dívidas e Proteger o seu Mínimo Existencial. Foco em readequação e fim dos juros abusivos."},
@@ -28,7 +62,7 @@ modulos_treinamento = [
     {"titulo": "4. Utilização do CRM e Pós-Venda", "desc": "Como mover os leads pelo pipeline e manter o acompanhamento ativo via WhatsApp."}
 ]
 
-# ETAPA 1 DO CLIENTE: Dados Iniciais
+# ETAPA 1 DO CLIENTE
 FORM_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -73,7 +107,7 @@ FORM_TEMPLATE = '''
 </html>
 '''
 
-# ETAPA 2 DO CLIENTE: Escolha do Serviço (Catálogo)
+# ETAPA 2 DO CLIENTE
 SERVICE_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -109,7 +143,7 @@ SERVICE_TEMPLATE = '''
 </html>
 '''
 
-# ETAPA 3 DO CLIENTE: Redirecionamento
+# ETAPA 3 DO CLIENTE
 REDIRECT_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -143,7 +177,7 @@ REDIRECT_TEMPLATE = '''
 </html>
 '''
 
-# PAINEL INTERNO DA EQUIPA (Com TODOS os botões e secções solicitadas)
+# PAINEL INTERNO DA EQUIPA
 PANEL_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -173,10 +207,11 @@ PANEL_TEMPLATE = '''
         .section-box { background: #1c2541; padding: 18px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #3a506b; }
         .section-box h3 { margin-top: 0; color: #ffb703; font-size: 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #3a506b; padding-bottom: 8px; }
         
-        .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
         .training-card { background: #0b132b; border: 1px solid #3a506b; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #2ec4b6; }
         
         .btn-whats { background: #2ec4b6; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; }
+        .btn-action { background: #ffb703; color: #0b132b; padding: 5px 10px; border-radius: 4px; border: none; font-size: 11px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 5px; }
         
         .chat-box { background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; padding: 12px; height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
         .chat-msg { padding: 8px 12px; border-radius: 6px; max-width: 85%; font-size: 13px; }
@@ -200,7 +235,7 @@ PANEL_TEMPLATE = '''
     </header>
 
     <div class="container">
-        <!-- TODOS OS BOTÕES DE NAVEGAÇÃO PEDIDOS -->
+        <!-- BOTÕES DE NAVEGAÇÃO -->
         <div class="nav-tabs">
             <a href="/painel" class="nav-btn active">🏠 Início</a>
             <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b;">📋 Gestão de Leads</a>
@@ -217,11 +252,11 @@ PANEL_TEMPLATE = '''
             <div class="grid-cards" style="margin-bottom:0;">
                 <div class="card-metric">
                     <h3>JÁ RECEBIDO (CAIXA)</h3>
-                    <div class="value" style="color: #2ec4b6;">R$ 0,00</div>
+                    <div class="value" style="color: #2ec4b6;">R$ {{ total_recebido }}</div>
                 </div>
                 <div class="card-metric">
                     <h3>A RECEBER (FALTA PAGAR)</h3>
-                    <div class="value" style="color: #ffb703;">R$ 54,00</div>
+                    <div class="value" style="color: #ffb703;">R$ {{ total_areceber }}</div>
                 </div>
                 <div class="card-metric">
                     <h3>TOTAL INADIMPLENTE / DEVENDO</h3>
@@ -230,7 +265,7 @@ PANEL_TEMPLATE = '''
             </div>
         </div>
 
-        <!-- Gestão de Leads / Funil (Pré-Venda, Vendas, Concluídas, Contratos Fechados) -->
+        <!-- Gestão de Leads / Funil -->
         <div class="section-box" id="leads-section">
             <h3>📋 Gestão de Leads & Funil de Atendimento</h3>
             <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
@@ -243,13 +278,18 @@ PANEL_TEMPLATE = '''
             {% for lead in leads %}
             <div class="lead-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong>{{ lead.nome }}</strong>
-                    <span style="background: #ffb703; color: #0b132b; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">{{ lead.status }}</span>
+                    <strong>{{ lead[1] }}</strong>
+                    <span style="background: #ffb703; color: #0b132b; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">{{ lead[5] }}</span>
                 </div>
-                <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead.servico }}</span><br>
-                <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead.telefone }}</span>
-                <div style="color: #2ec4b6; font-weight: bold; margin-top: 4px;">R$ {{ lead.valor }}</div>
-                <a href="https://wa.me/{{ lead.telefone }}?text=Olá%20{{ lead.nome }},%20estamos%20a%20entrar%20em%20contacto%20sobre%20o%20seu%20atendimento." target="_blank" class="btn-whats">📱 Falar no Whats</a>
+                <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead[2] }}</span><br>
+                <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead[3] }}</span>
+                <div style="color: #2ec4b6; font-weight: bold; margin-top: 4px;">R$ {{ lead[4] }}</div>
+                
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                    <a href="https://wa.me/{{ lead[3] }}?text=Olá%20{{ lead[1] }},%20estamos%20a%20entrar%20em%20contacto." target="_blank" class="btn-whats">📱 WhatsApp</a>
+                    <a href="/atualizar_status/{{ lead[0] }}/Vendas" class="btn-action" style="background: #3a506b; color: white;">Mover p/ Vendas</a>
+                    <a href="/atualizar_status/{{ lead[0] }}/Contrato Fechado" class="btn-action">📄 Fechar Contrato</a>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -270,13 +310,13 @@ PANEL_TEMPLATE = '''
             <h3>💬 Chat ao Vivo com Clientes</h3>
             <div class="chat-box">
                 {% for msg in mensagens_chat %}
-                    {% if "Atendente" not in msg.remetente %}
+                    {% if "Atendente" not in msg[1] %}
                     <div class="chat-msg msg-cliente">
-                        <strong>{{ msg.remetente }}:</strong> {{ msg.texto }}
+                        <strong>{{ msg[1] }}:</strong> {{ msg[2] }}
                     </div>
                     {% else %}
                     <div class="chat-msg msg-atendente">
-                        <strong>{{ msg.remetente }}:</strong> {{ msg.texto }}
+                        <strong>{{ msg[1] }}:</strong> {{ msg[2] }}
                     </div>
                     {% endif %}
                 {% endfor %}
@@ -303,7 +343,7 @@ PANEL_TEMPLATE = '''
             <h3>📊 DRE Corporativa</h3>
             <div class="dre-linha">
                 <span>(+) Receita Total Contratada</span>
-                <span style="color: #2ec4b6;">R$ 54,00</span>
+                <span style="color: #2ec4b6;">R$ {{ total_areceber }}</span>
             </div>
             <div class="dre-linha">
                 <span>(-) Deduções e Impostos (~8%)</span>
@@ -340,9 +380,14 @@ def etapa3():
     telefone = session.get('telefone')
     
     if nome and telefone:
-        # Sincroniza e adiciona automaticamente como lead na Pré-Venda
-        leads.append({"id": len(leads) + 1, "nome": nome, "servico": servico, "telefone": telefone, "valor": "0.00", "status": "Pré-Venda"})
-        mensagens_chat.append({"remetente": f"Cliente ({nome})", "texto": f"Interesse em: {servico}", "hora": "Agora"})
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status) VALUES (?, ?, ?, ?, ?)",
+                       (nome, servico, telefone, "54.00", "Pré-Venda"))
+        cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)",
+                       (f"Cliente ({nome})", f"Interesse em: {servico}", "Agora"))
+        conn.commit()
+        conn.close()
 
     mensagem = f"Olá, meu nome é {nome}. Gostaria de atendimento sobre o serviço: {servico}."
     whatsapp_url = f"https://wa.me/5551999797731?text={mensagem}"
@@ -351,13 +396,41 @@ def etapa3():
 
 @app.route('/painel')
 def painel_equipe():
-    return render_template_string(PANEL_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat, modulos_treinamento=modulos_treinamento)
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM leads")
+    leads = cursor.fetchall()
+    
+    cursor.execute("SELECT * FROM mensagens")
+    mensagens_chat = cursor.fetchall()
+    conn.close()
+    
+    total_areceber = "54.00"
+    total_recebido = "0,00"
+    
+    return render_template_string(PANEL_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat, 
+                                  catalogo_servicos=catalogo_servicos, modulos_treinamento=modulos_treinamento,
+                                  total_areceber=total_areceber, total_recebido=total_recebido)
+
+@app.route('/atualizar_status/<int:lead_id>/<novo_status>')
+def atualizar_status(lead_id, novo_status):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE leads SET status = ? WHERE id = ?", (novo_status, lead_id))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('painel_equipe') + '#leads-section')
 
 @app.route('/enviar_chat', methods=['POST'])
 def enviar_chat():
     texto = request.form.get('texto_mensagem')
     if texto:
-        mensagens_chat.append({"remetente": "Atendente (Aquiles)", "texto": texto, "hora": "Agora"})
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)",
+                       ("Atendente (Aquiles)", texto, "Agora"))
+        conn.commit()
+        conn.close()
     return redirect(url_for('painel_equipe') + '#chat-section')
 
 @app.route('/manifest.json')
