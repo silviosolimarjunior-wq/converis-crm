@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, redirect, url_for, send_from_directory, session
+from flask import Flask, render_template_string, request, redirect, url_for, send_from_directory, session, Response
 import sqlite3
 import os
 
@@ -7,7 +7,6 @@ app.secret_key = 'converis_secret_key'
 
 DB_NAME = 'converis.db'
 
-# Mapeamento automático do serviço para o tipo de contrato
 CONTRATOS_POR_SERVICO = {
     "Lei do Superendividamento": "Contrato de Superendividamento",
     "Empréstimo Consignado do INSS": "Contrato de Revisão Consignado",
@@ -259,8 +258,8 @@ PANEL_TEMPLATE = '''
                     <div class="value" style="color: #ffb703;">R$ {{ total_areceber }}</div>
                 </div>
                 <div class="card-metric">
-                    <h3>TOTAL INADIMPLENTE / DEVENDO</h3>
-                    <div class="value" style="color: #e71d36;">R$ 0,00</div>
+                    <h3>CONTRATOS FECHADOS</h3>
+                    <div class="value" style="color: #7209b7;">{{ total_fechados }}</div>
                 </div>
             </div>
         </div>
@@ -268,30 +267,52 @@ PANEL_TEMPLATE = '''
         <div class="section-box" id="leads-section">
             <h3>📋 Gestão de Leads & Funil de Atendimento</h3>
             <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
-                <span class="nav-btn" style="background: #3a506b; font-size: 11px;">⏳ Pré-Venda (Espera)</span>
-                <span class="nav-btn" style="background: #ffb703; color: #0b132b; font-size: 11px;">🤝 Vendas (Em Atendimento)</span>
-                <span class="nav-btn" style="background: #2ec4b6; color: white; font-size: 11px;">✅ Concluídas</span>
-                <span class="nav-btn" style="background: #7209b7; font-size: 11px;">📄 Contratos Fechados</span>
+                <span class="nav-btn" style="background: #3a506b; font-size: 11px;">⏳ Leads Ativos no Funil</span>
+                <span class="nav-btn" style="background: #7209b7; font-size: 11px;">📄 Contratos Fechados ({{ contratos_lista|length }})</span>
             </div>
             
-            {% for lead in leads %}
-            <div class="lead-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong>{{ lead[1] }}</strong>
-                    <span style="background: #ffb703; color: #0b132b; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">{{ lead[5] }}</span>
+            <h4 style="color: #8d99ae; font-size: 13px; margin-bottom: 8px;">Leads em Atendimento:</h4>
+            {% if leads %}
+                {% for lead in leads %}
+                <div class="lead-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>{{ lead[1] }}</strong>
+                        <span style="background: #ffb703; color: #0b132b; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">{{ lead[5] }}</span>
+                    </div>
+                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead[2] }}</span><br>
+                    <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead[3] }}</span><br>
+                    <span style="color: #4cc9f0; font-size: 12px; font-weight: bold;">📝 Contrato Sugerido: {{ lead[6] }}</span>
+                    <div style="color: #2ec4b6; font-weight: bold; margin-top: 4px;">R$ {{ lead[4] }}</div>
+                    
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                        <a href="https://wa.me/{{ lead[3] }}?text=Olá%20{{ lead[1] }},%20estamos%20a%20entrar%20em%20contacto." target="_blank" class="btn-whats">📱 WhatsApp</a>
+                        <a href="/atualizar_status/{{ lead[0] }}/Vendas" class="btn-action" style="background: #3a506b; color: white;">Mover p/ Vendas</a>
+                        <a href="/atualizar_status/{{ lead[0] }}/Contrato_Fechado" class="btn-action">📄 Fechar Contrato</a>
+                    </div>
                 </div>
-                <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead[2] }}</span><br>
-                <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead[3] }}</span><br>
-                <span style="color: #4cc9f0; font-size: 12px; font-weight: bold;">📝 Contrato: {{ lead[6] }}</span>
-                <div style="color: #2ec4b6; font-weight: bold; margin-top: 4px;">R$ {{ lead[4] }}</div>
-                
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
-                    <a href="https://wa.me/{{ lead[3] }}?text=Olá%20{{ lead[1] }},%20estamos%20a%20entrar%20em%20contacto." target="_blank" class="btn-whats">📱 WhatsApp</a>
-                    <a href="/atualizar_status/{{ lead[0] }}/Vendas" class="btn-action" style="background: #3a506b; color: white;">Mover p/ Vendas</a>
-                    <a href="/atualizar_status/{{ lead[0] }}/Contrato_Fechado" class="btn-action">📄 Fechar Contrato</a>
+                {% endfor %}
+            {% else %}
+                <p style="color: #8d99ae; font-size: 13px; font-style: italic;">Nenhum lead ativo no momento.</p>
+            {% endif %}
+
+            <h4 style="color: #ffb703; font-size: 13px; margin-top: 25px; margin-bottom: 8px; border-top: 1px solid #3a506b; padding-top: 15px;">📄 Contratos Fechados / Emitidos:</h4>
+            {% if contratos_lista %}
+                {% for c in contratos_lista %}
+                <div class="lead-card" style="border-left: 4px solid #7209b7;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>{{ c[1] }}</strong>
+                        <span style="background: #7209b7; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">Fechado</span>
+                    </div>
+                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ c[2] }}</span><br>
+                    <span style="color: #4cc9f0; font-size: 12px; font-weight: bold;">📄 Documento: {{ c[6] }}</span>
+                    <div style="margin-top: 10px;">
+                        <a href="/ver_contrato/{{ c[0] }}" target="_blank" class="btn-action" style="background: #2ec4b6; color: #0b132b;">👁️ Ver Contrato em Texto</a>
+                    </div>
                 </div>
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <p style="color: #8d99ae; font-size: 13px; font-style: italic;">Ainda nenhum contrato fechado.</p>
+            {% endif %}
         </div>
 
         <div class="section-box" id="catalogo-section">
@@ -358,6 +379,40 @@ PANEL_TEMPLATE = '''
 </html>
 '''
 
+CONTRATO_VIEW_TEMPLATE = '''
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONVERIS - Visualizar Contrato</title>
+    <meta name="theme-color" content="#0b132b">
+    <style>
+        body { background-color: #0b132b; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .contract-box { background: #1c2541; padding: 30px; border-radius: 12px; border: 1px solid #3a506b; width: 100%; max-width: 700px; }
+        h1 { color: #ffb703; font-size: 20px; border-bottom: 1px solid #3a506b; padding-bottom: 10px; }
+        p { line-height: 1.6; color: #d8dee9; font-size: 14px; }
+        .btn-voltar { background: #ffb703; color: #0b132b; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="contract-box">
+        <h1>{{ lead[6] }}</h1>
+        <p><strong>Contratante (Cliente):</strong> {{ lead[1] }}</p>
+        <p><strong>Telefone / WhatsApp:</strong> {{ lead[3] }}</p>
+        <p><strong>Serviço Contratado:</strong> {{ lead[2] }}</p>
+        <hr style="border-color: #3a506b; margin: 20px 0;">
+        <p><strong>CLÁUSULA PRIMEIRA - DO OBJETO:</strong> O presente instrumento tem como objeto a prestação de serviços especializados de assessoria e consultoria financeira referentes ao serviço de <em>{{ lead[2] }}</em>, prestados pela CONVERIS SOLUÇÕES FINANCEIRAS.</p>
+        <p><strong>CLÁUSULA SEGUNDA - DOS HONORÁRIOS:</strong> O valor acordado para a prestação dos serviços acima descritos é de R$ {{ lead[4] }}, pagos conforme as condições alinhadas no atendimento via canais oficiais.</p>
+        <p><strong>CLÁUSULA TERCEIRA - DAS OBRIGAÇÕES:</strong> A CONVERIS compromete-se a envidar todos os esforços técnicos e legais para o sucesso da demanda apresentada pelo contratante.</p>
+        <br>
+        <p style="text-align: center; color: #ffb703; font-weight: bold;">Documento gerado eletronicamente e validado pelo CRM Converis.</p>
+        <a href="/painel" class="btn-voltar">← Voltar para o Painel</a>
+    </div>
+</body>
+</html>
+'''
+
 @app.route('/')
 def index():
     return render_template_string(FORM_TEMPLATE)
@@ -374,7 +429,6 @@ def etapa3():
     nome = session.get('nome')
     telefone = session.get('telefone')
     
-    # Atribui o contrato automaticamente com base no serviço escolhido
     tipo_contrato = CONTRATOS_POR_SERVICO.get(servico, "Contrato Geral de Prestação de Serviços")
     
     if nome and telefone:
@@ -400,22 +454,31 @@ def painel_equipe():
     try:
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM leads")
+        
+        # Leads ativos (que ainda não fecharam contrato)
+        cursor.execute("SELECT * FROM leads WHERE status != 'Contrato Fechado'")
         leads = cursor.fetchall()
+        
+        # Contratos fechados
+        cursor.execute("SELECT * FROM leads WHERE status = 'Contrato Fechado'")
+        contratos_lista = cursor.fetchall()
         
         cursor.execute("SELECT * FROM mensagens")
         mensagens_chat = cursor.fetchall()
         conn.close()
     except Exception:
         leads = []
+        contratos_lista = []
         mensagens_chat = []
     
     total_areceber = "54.00"
     total_recebido = "0,00"
+    total_fechados = len(contratos_lista)
     
-    return render_template_string(PANEL_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat, 
-                                  catalogo_servicos=catalogo_servicos, modulos_treinamento=modulos_treinamento,
-                                  total_areceber=total_areceber, total_recebido=total_recebido)
+    return render_template_string(PANEL_TEMPLATE, leads=leads, contratos_lista=contratos_lista, 
+                                  mensagens_chat=mensagens_chat, catalogo_servicos=catalogo_servicos, 
+                                  modulos_treinamento=modulos_treinamento, total_areceber=total_areceber, 
+                                  total_recebido=total_recebido, total_fechados=total_fechados)
 
 @app.route('/atualizar_status/<int:lead_id>/<path:novo_status>')
 def atualizar_status(lead_id, novo_status):
@@ -429,6 +492,20 @@ def atualizar_status(lead_id, novo_status):
     except Exception as e:
         print("Erro ao atualizar status:", e)
     return redirect(url_for('painel_equipe') + '#leads-section')
+
+@app.route('/ver_contrato/<int:lead_id>')
+def ver_contrato(lead_id):
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM leads WHERE id = ?", (lead_id,))
+        lead = cursor.fetchone()
+        conn.close()
+        if lead:
+            return render_template_string(CONTRATO_VIEW_TEMPLATE, lead=lead)
+    except Exception:
+        pass
+    return "Contrato não encontrado", 404
 
 @app.route('/enviar_chat', methods=['POST'])
 def enviar_chat():
