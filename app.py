@@ -2,13 +2,9 @@ from flask import Flask, render_template_string, request, redirect, url_for
 
 app = Flask(__name__)
 
-# Dados iniciais do CRM com DRE e Leads
+# Dados iniciais do CRM
 leads = [
     {"id": 1, "nome": "Silvio Solimar", "servico": "Financiamento/Veículos", "telefone": "51990113071", "valor": "54.00", "status": "Novo Lead"}
-]
-
-despesas_operacionais = [
-    {"descricao": "Servidor e Hospedagem", "valor": "0.00"}
 ]
 
 HTML_TEMPLATE = '''
@@ -26,8 +22,9 @@ HTML_TEMPLATE = '''
         .logo-badge { background: #7209b7; color: white; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
         .container { max-width: 1100px; margin: 20px auto; padding: 15px; }
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .nav-btn { background: #ffb703; color: #0b132b; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; }
-        .nav-btn:hover { background: #fb8500; }
+        .nav-btn { background: #3a506b; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; }
+        .nav-btn.active { background: #ffb703; color: #0b132b; }
+        .nav-btn:hover { opacity: 0.9; }
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card-metric { background: #1c2541; padding: 20px; border-radius: 10px; border: 1px solid #3a506b; }
         .card-metric h3 { margin: 0 0 10px 0; font-size: 13px; color: #8d99ae; text-transform: uppercase; }
@@ -38,7 +35,7 @@ HTML_TEMPLATE = '''
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-size: 13px; color: #8d99ae; }
         input, select { width: 100%; padding: 12px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; }
-        button.submit-btn { background: #ffb703; color: #0b132b; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+        button.submit-btn { background: #ffb703; color: #0b132b; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; }
         button.submit-btn:hover { background: #fb8500; }
         .dre-linha { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #28385e; font-size: 14px; }
         .dre-total { font-weight: bold; color: #4cc9f0; font-size: 16px; margin-top: 10px; }
@@ -57,11 +54,13 @@ HTML_TEMPLATE = '''
     </header>
 
     <div class="container">
+        <!-- Navegação com botão Início -->
         <div class="nav-tabs">
+            <a href="/" class="nav-btn active">🏠 Início</a>
             <a href="#" class="nav-btn">📋 Gestão de Leads (Atendimento)</a>
-            <a href="#" class="nav-btn" style="background: #3a506b; color: white;">🏠 Dashboard</a>
-            <a href="#" class="nav-btn" style="background: #3a506b; color: white;">📦 Catálogo</a>
-            <a href="#" class="nav-btn" style="background: #3a506b; color: white;">🎓 Treinamento</a>
+            <a href="#" class="nav-btn">📊 Dashboard</a>
+            <a href="#" class="nav-btn">📦 Catálogo</a>
+            <a href="#" class="nav-btn">🎓 Treinamento</a>
         </div>
 
         <div class="grid-cards">
@@ -107,14 +106,14 @@ HTML_TEMPLATE = '''
         </div>
 
         <div class="section-box">
-            <h3>📌 Leads Ativos (1)</h3>
+            <h3>🔵 Novo Lead (Entrada WhatsApp)</h3>
             {% for lead in leads %}
             <div class="lead-card">
                 <strong>{{ lead.nome }}</strong><br>
                 <span style="color: #8d99ae; font-size: 13px;">📁 Serviço: {{ lead.servico }}</span><br>
                 <span style="color: #8d99ae; font-size: 13px;">📞 Tel: {{ lead.telefone }}</span>
-                <div style="color: #ffb703; font-weight: bold; margin-top: 5px;">R$ {{ lead.valor }}</div>
-                <a href="https://wa.me/{{ lead.telefone }}" target="_blank" class="btn-whats">💬 Falar no Whats</a>
+                <div style="color: #2ec4b6; font-weight: bold; margin-top: 5px;">R$ {{ lead.valor }}</div>
+                <a href="https://wa.me/{{ lead.telefone }}" target="_blank" class="btn-whats">📲 Falar no Whats</a>
             </div>
             {% endfor %}
         </div>
