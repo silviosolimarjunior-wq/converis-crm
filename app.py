@@ -1,9 +1,12 @@
 from flask import Flask, render_template_string, request, redirect, url_for, session
 import sqlite3
+import os
 
 app = Flask(__name__)
 app.secret_key = 'converis_secret_key'
-DB_NAME = ':memory:'
+
+# Na Vercel, o único diretório com permissão de escrita é /tmp
+DB_PATH = '/tmp/converis.db'
 
 CONTRATOS_POR_SERVICO = {
     "Lei do Superendividamento": "Contrato de Superendividamento",
@@ -13,7 +16,7 @@ CONTRATOS_POR_SERVICO = {
 }
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
