@@ -10,8 +10,67 @@ def home():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Converis CRM</title>
-        
+        <title>Converis CRM - Martik</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f4f7f6;
+                margin: 0;
+                padding: 0;
+            }
+            header {
+                background: linear-gradient(135deg, #1e3c72, #2a5298);
+                color: white;
+                padding: 20px 40px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            .logo-area {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            .logo-icon {
+                background: #ff6b6b;
+                color: white;
+                font-weight: bold;
+                font-size: 24px;
+                width: 50px;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 12px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            .brand-title h1 {
+                margin: 0;
+                font-size: 22px;
+                letter-spacing: 0.5px;
+            }
+            .brand-title p {
+                margin: 0;
+                font-size: 13px;
+                color: #dcdcdc;
+            }
+            .container {
+                max-width: 1000px;
+                margin: 40px auto;
+                padding: 30px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            }
+            .card {
+                background: #f8f9fa;
+                border-left: 5px solid #2a5298;
+                padding: 20px;
+                border-radius: 6px;
+                margin-top: 20px;
+            }
+        </style>
         <!-- Meta Pixel Code -->
         <script>
         !function(f,b,e,v,n,t,s)
@@ -31,8 +90,23 @@ def home():
         <!-- End Meta Pixel Code -->
     </head>
     <body>
-        <h1>Converis CRM</h1>
-        <p>Bem-vindo ao seu sistema CRM!</p>
+        <header>
+            <div class="logo-area">
+                <div class="logo-icon">C</div>
+                <div class="brand-title">
+                    <h1>Converis CRM</h1>
+                    <p>Powered by <strong>Martik</strong></p>
+                </div>
+            </div>
+        </header>
+        <div class="container">
+            <h2>Painel Principal</h2>
+            <p>O seu sistema CRM está moderno, otimizado e pronto para impulsionar as suas conversões com o selo de qualidade <strong>Martik</strong>.</p>
+            <div class="card">
+                <h3>Status do Sistema</h3>
+                <p>✅ Aplicação online e Pixel do Meta ativo a monitorizar o tráfego.</p>
+            </div>
+        </div>
     </body>
     </html>
     '''
