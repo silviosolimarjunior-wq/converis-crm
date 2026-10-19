@@ -3,113 +3,100 @@ from flask import Flask
 app = Flask(__name__)
 
 @app.route('/')
-def home():
-    return '''
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Converis CRM - Martik</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background-color: #f4f7f6;
-                margin: 0;
-                padding: 0;
-            }
-            header {
-                background: linear-gradient(135deg, #1e3c72, #2a5298);
-                color: white;
-                padding: 20px 40px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            }
-            .logo-area {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-            }
-            .logo-icon {
-                background: #ff6b6b;
-                color: white;
-                font-weight: bold;
-                font-size: 24px;
-                width: 50px;
-                height: 50px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 12px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            }
-            .brand-title h1 {
-                margin: 0;
-                font-size: 22px;
-                letter-spacing: 0.5px;
-            }
-            .brand-title p {
-                margin: 0;
-                font-size: 13px;
-                color: #dcdcdc;
-            }
-            .container {
-                max-width: 1000px;
-                margin: 40px auto;
-                padding: 30px;
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            }
-            .card {
-                background: #f8f9fa;
-                border-left: 5px solid #2a5298;
-                padding: 20px;
-                border-radius: 6px;
-                margin-top: 20px;
-            }
-        </style>
-        <!-- Meta Pixel Code -->
-        <script>
-        !function(f,b,e,v,n,t,s)
-        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-        n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s)}(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '123456789012345');
-        fbq('track', 'PageView');
-        </script>
-        <noscript><img height="1" width="1" style="display:none"
-        src="https://www.facebook.com/tr?id=123456789012345&ev=PageView&noscript=1"
-        /></noscript>
-        <!-- End Meta Pixel Code -->
-    </head>
-    <body>
-        <header>
-            <div class="logo-area">
-                <div class="logo-icon">C</div>
-                <div class="brand-title">
-                    <h1>Converis CRM</h1>
-                    <p>Powered by <strong>Martik</strong></p>
-                </div>
-            </div>
-        </header>
-        <div class="container">
-            <h2>Painel Principal do CRM</h2>
-            <p>O seu sistema CRM completo está configurado, otimizado e pronto para gerir os seus clientes com o selo de qualidade <strong>Martik</strong>.</p>
-            <div class="card">
-                <h3>Módulos Ativos</h3>
-                <p>✅ Gestão de Leads, Funil de Vendas e Pixel do Meta a monitorizar o tráfego.</p>
+def index():
+    return '''<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Converis CRM - Martik</title>
+    <style>
+        * { box-sizing: border-box; font-family: sans-serif; }
+        body { background-color: #f4f7f6; margin: 0; padding: 0; }
+        header { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 15px 30px; display: flex; align-items: center; justify-content: space-between; }
+        .logo-box { background: #ff6b6b; color: white; font-weight: bold; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .container { max-width: 1100px; margin: 20px auto; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .card h3 { margin: 0 0 10px 0; color: #555; font-size: 14px; }
+        .card .number { font-size: 24px; font-weight: bold; color: #1e3c72; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; color: #333; }
+        .status { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; background: #e3f2fd; color: #1976d2; }
+    </style>
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '123456789012345');
+    fbq('track', 'PageView');
+    </script>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="logo-box">C</div>
+            <div>
+                <h2 style="margin:0; font-size:18px;">Converis CRM</h2>
+                <span style="font-size:11px; opacity:0.8;">Powered by <strong>Martik</strong></span>
             </div>
         </div>
-    </body>
-    </html>
-    '''
+    </header>
+
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <h3>TOTAL DE LEADS</h3>
+                <div class="number">2</div>
+            </div>
+            <div class="card">
+                <h3>OPORTUNIDADES</h3>
+                <div class="number">R$ 4.700</div>
+            </div>
+            <div class="card">
+                <h3>PIXEL DO META</h3>
+                <div class="number" style="color:#2e7d32; font-size:16px;">🟢 Ativo</div>
+            </div>
+        </div>
+
+        <h3>Gestão de Leads & Oportunidades</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Status</th>
+                    <th>Valor Estimado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>#1</td>
+                    <td><strong>João Silva</strong></td>
+                    <td>joao@email.com</td>
+                    <td><span class="status">Novo Lead</span></td>
+                    <td>R$ 1.500</td>
+                </tr>
+                <tr>
+                    <td>#2</td>
+                    <td><strong>Maria Santos</strong></td>
+                    <td>maria@email.com</td>
+                    <td><span class="status">Em Negociação</span></td>
+                    <td>R$ 3.200</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>'''
 
 if __name__ == '__main__':
     app.run()
