@@ -100,11 +100,11 @@ def home():
             </div>
         </header>
         <div class="container">
-            <h2>Painel Principal</h2>
-            <p>O seu sistema CRM está moderno, otimizado e pronto para impulsionar as suas conversões com o selo de qualidade <strong>Martik</strong>.</p>
+            <h2>Painel Principal do CRM</h2>
+            <p>O seu sistema CRM completo está configurado, otimizado e pronto para gerir os seus clientes com o selo de qualidade <strong>Martik</strong>.</p>
             <div class="card">
-                <h3>Status do Sistema</h3>
-                <p>✅ Aplicação online e Pixel do Meta ativo a monitorizar o tráfego.</p>
+                <h3>Módulos Ativos</h3>
+                <p>✅ Gestão de Leads, Funil de Vendas e Pixel do Meta a monitorizar o tráfego.</p>
             </div>
         </div>
     </body>
