@@ -12,8 +12,13 @@ CONTRATOS_POR_SERVICO = {
     "Parcelas Atrasadas (Financiamentos)": "Contrato de Defesa de Financiamento"
 }
 
-def init_db():
+def get_db_connection():
     conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS leads (
@@ -21,9 +26,11 @@ def init_db():
             nome TEXT,
             servico TEXT,
             telefone TEXT,
-            valor TEXT,
+            valor REAL,
+            custo REAL,
             status TEXT,
-            tipo_contrato TEXT
+            tipo_contrato TEXT,
+            data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     cursor.execute('''
@@ -35,11 +42,22 @@ def init_db():
         )
     ''')
     conn.commit()
+    
     cursor.execute('SELECT COUNT(*) FROM leads')
     if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status, tipo_contrato) VALUES (?, ?, ?, ?, ?, ?)",
-                       ("Silvio Solimar silva da silva junior", "Financiamento/Veículos", "51990113071", "54.00", "Pré-Venda", "Contrato de Defesa de Financiamento"))
-    conn.commit()
+        cursor.execute("""
+            INSERT INTO leads (nome, servico, telefone, valor, custo, status, tipo_contrato) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, ("Silvio Solimar Silva", "Parcelas Atrasadas (Financiamentos)", "51990113071", 1500.00, 300.00, "Vendas", "Contrato de Defesa de Financiamento"))
+        cursor.execute("""
+            INSERT INTO leads (nome, servico, telefone, valor, custo, status, tipo_contrato) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, ("Maria Oliveira", "Lei do Superendividamento", "51988887777", 2500.00, 500.00, "Contrato Fechado", "Contrato de Superendividamento"))
+        cursor.execute("""
+            INSERT INTO leads (nome, servico, telefone, valor, custo, status, tipo_contrato) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, ("João Santos", "Empréstimo Consignado do INSS", "51977776666", 800.00, 150.00, "Pré-Venda", "Contrato de Revisão Consignado"))
+        conn.commit()
     conn.close()
 
 init_db()
@@ -75,7 +93,7 @@ FORM_TEMPLATE = '''
 <body>
     <div class="box">
         <div class="logo-badge">∞</div>
-        <h1>CONVERIS</h1>
+        <h1>🏠 CONVERIS</h1>
         <p>Preencha os seus dados para iniciar o atendimento.</p>
         <form action="/etapa2" method="POST">
             <div class="form-group">
@@ -86,9 +104,9 @@ FORM_TEMPLATE = '''
                 <label>O seu WhatsApp / Telefone *</label>
                 <input type="text" name="telefone" required placeholder="51999999999">
             </div>
-            <button type="submit">Avançar para Serviços</button>
+            <button type="submit">Avançar para Catálogo de Serviços 📦</button>
         </form>
-        <a href="/painel" class="team-link">🔒 Área da Equipa (CRM)</a>
+        <a href="/painel" class="team-link">🔒 Área da Equipe (CRM)</a>
     </div>
 </body>
 </html>
@@ -173,7 +191,7 @@ PANEL_TEMPLATE = '''
         .logo-badge { background: #7209b7; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; }
         .nav-tools { display: flex; gap: 8px; flex-wrap: wrap; }
         .container { max-width: 1100px; margin: 15px auto; padding: 10px; }
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .card-metric { background: #1c2541; padding: 16px; border-radius: 8px; border: 1px solid #3a506b; }
         .card-metric h3 { margin: 0 0 8px 0; font-size: 11px; color: #8d99ae; }
         .card-metric .value { font-size: 20px; font-weight: bold; }
@@ -183,6 +201,10 @@ PANEL_TEMPLATE = '''
         .btn-whats { background: #2ec4b6; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; }
         .btn-action { background: #ffb703; color: #0b132b; padding: 6px 12px; border-radius: 4px; border: none; font-size: 12px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 5px; }
         .btn-tool { background: #3a506b; color: #ffffff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; border: 1px solid #ffb703; display: inline-flex; align-items: center; gap: 4px; }
+        .badge-status { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .badge-prevenda { background: #ffb703; color: #0b132b; }
+        .badge-vendas { background: #4cc9f0; color: #0b132b; }
+        .badge-fechado { background: #7209b7; color: white; }
     </style>
 </head>
 <body>
@@ -191,80 +213,167 @@ PANEL_TEMPLATE = '''
             <div class="logo-badge">∞</div>
             <div>
                 <h2 style="margin:0; font-size:18px;">CONVERIS CRM</h2>
-                <span style="font-size:11px; color: #8d99ae;">PAINEL INTERNO • AQUILES VENDAS</span>
+                <span style="font-size:11px; color: #8d99ae;">PAINEL DE GESTÃO INTEGRADA</span>
             </div>
         </div>
         <div class="nav-tools">
+            <a href="/" class="btn-tool">🏠 Início</a>
+            <a href="/catalogo" class="btn-tool">📦 Catálogo</a>
             <a href="/treinamento" class="btn-tool">🎓 Treinamento</a>
-            <a href="/leilao_led" class="btn-tool">🚨 Leilão (LED)</a>
-            <a href="/chat_equipa" class="btn-tool">💬 Chat Interno</a>
-            <a href="/" class="btn-action" style="background: #1c2541; color: #2ec4b6; border: 1px solid #2ec4b6;">🌐 Início Cliente</a>
+            <a href="/chat_equipa" class="btn-tool">💬 Chat ao Vivo</a>
+            <a href="/dre" class="btn-tool" style="border-color: #2ec4b6;">📊 DRE Corporativa</a>
         </div>
     </header>
 
     <div class="container">
         <div class="section-box">
-            <h3>🏠 Dashboard & Métricas Financeiras</h3>
+            <h3>🏠 Dashboard - Resumo Geral</h3>
             <div class="grid-cards" style="margin-bottom:0;">
                 <div class="card-metric">
-                    <h3>JÁ RECEBIDO (CAIXA)</h3>
-                    <div class="value" style="color: #2ec4b6;">R$ {{ total_recebido }}</div>
+                    <h3>⏳ PRÉ-VENDA (ESPERA)</h3>
+                    <div class="value" style="color: #ffb703;">{{ total_prevenda }}</div>
                 </div>
                 <div class="card-metric">
-                    <h3>A RECEBER (FALTA PAGAR)</h3>
-                    <div class="value" style="color: #ffb703;">R$ {{ total_areceber }}</div>
+                    <h3>🤝 VENDAS (EM ATENDIMENTO)</h3>
+                    <div class="value" style="color: #4cc9f0;">{{ total_vendas }}</div>
                 </div>
                 <div class="card-metric">
-                    <h3>CONTRATOS FECHADOS</h3>
-                    <div class="value" style="color: #7209b7;">{{ total_fechados }}</div>
+                    <h3>✅ CONCLUÍDAS / CONTRATOS</h3>
+                    <div class="value" style="color: #2ec4b6;">{{ total_fechados }}</div>
+                </div>
+                <div class="card-metric">
+                    <h3>💰 FATURAMENTO BRUTO</h3>
+                    <div class="value" style="color: #ffb703;">R$ {{ "%.2f"|format(faturamento) }}</div>
                 </div>
             </div>
         </div>
 
         <div class="section-box">
             <h3>📋 Gestão de Leads & Funil de Atendimento</h3>
-            <h4 style="color: #8d99ae; font-size: 13px; margin-bottom: 8px;">Leads em Atendimento:</h4>
-            {% if leads %}
-                {% for lead in leads %}
-                <div class="lead-card">
+            
+            <h4 style="color: #ffb703; font-size: 14px; margin-bottom: 8px;">⏳ Pré-Venda (Aguardando Primeiro Contato)</h4>
+            {% if leads_prevenda %}
+                {% for lead in leads_prevenda %}
+                <div class="lead-card" style="border-left: 4px solid #ffb703;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong>{{ lead[1] }}</strong>
-                        <span style="background: #ffb703; color: #0b132b; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">{{ lead[5] }}</span>
+                        <strong>{{ lead['nome'] }}</strong>
+                        <span class="badge-status badge-prevenda">{{ lead['status'] }}</span>
                     </div>
-                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead[2] }}</span><br>
-                    <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead[3] }}</span><br>
-                    <span style="color: #4cc9f0; font-size: 12px; font-weight: bold;">📝 Contrato Sugerido: {{ lead[6] }}</span>
-                    <div style="color: #2ec4b6; font-weight: bold; margin-top: 4px;">R$ {{ lead[4] }}</div>
+                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead['servico'] }}</span><br>
+                    <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead['telefone'] }}</span><br>
+                    <span style="color: #4cc9f0; font-size: 12px;">📝 Contrato: {{ lead['tipo_contrato'] }}</span>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
-                        <a href="https://wa.me/{{ lead[3] }}?text=Olá%20{{ lead[1] }},%20estamos%20a%20entrar%20em%20contacto." target="_blank" class="btn-whats">📱 WhatsApp</a>
-                        <a href="/atualizar_status/{{ lead[0] }}/Vendas" class="btn-action" style="background: #3a506b; color: white;">Mover p/ Vendas</a>
-                        <a href="/atualizar_status/{{ lead[0] }}/Contrato_Fechado" class="btn-action">📄 Fechar Contrato</a>
+                        <a href="https://wa.me/{{ lead['telefone'] }}?text=Olá%20{{ lead['nome'] }},%20sou%20da%20Converis." target="_blank" class="btn-whats">📱 WhatsApp</a>
+                        <a href="/atualizar_status/{{ lead['id'] }}/Vendas" class="btn-action">🤝 Mover p/ Vendas</a>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="color: #8d99ae; font-size: 13px; font-style: italic;">Nenhum lead ativo no momento.</p>
+                <p style="color: #8d99ae; font-size: 12px; font-style: italic;">Nenhum lead em Pré-Venda.</p>
             {% endif %}
 
-            <h4 style="color: #ffb703; font-size: 13px; margin-top: 25px; margin-bottom: 8px; border-top: 1px solid #3a506b; padding-top: 15px;">📄 Contratos Fechados / Emitidos:</h4>
+            <h4 style="color: #4cc9f0; font-size: 14px; margin-top: 25px; margin-bottom: 8px;">🤝 Vendas (Em Negociação Ativa)</h4>
+            {% if leads_vendas %}
+                {% for lead in leads_vendas %}
+                <div class="lead-card" style="border-left: 4px solid #4cc9f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>{{ lead['nome'] }}</strong>
+                        <span class="badge-status badge-vendas">{{ lead['status'] }}</span>
+                    </div>
+                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead['servico'] }}</span><br>
+                    <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead['telefone'] }}</span><br>
+                    <div style="color: #ffb703; font-weight: bold; margin-top: 4px;">Valor: R$ {{ "%.2f"|format(lead['valor']) }}</div>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                        <a href="https://wa.me/{{ lead['telefone'] }}" target="_blank" class="btn-whats">📱 WhatsApp</a>
+                        <a href="/atualizar_status/{{ lead['id'] }}/Contrato_Fechado" class="btn-action" style="background: #2ec4b6; color: #0b132b;">✅ Concluir / Fechar Contrato</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #8d99ae; font-size: 12px; font-style: italic;">Nenhum lead em fase de Vendas.</p>
+            {% endif %}
+
+            <h4 style="color: #2ec4b6; font-size: 14px; margin-top: 25px; margin-bottom: 8px;">📄 Contratos Fechados (Concluídas)</h4>
             {% if contratos_lista %}
                 {% for c in contratos_lista %}
                 <div class="lead-card" style="border-left: 4px solid #7209b7;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong>{{ c[1] }}</strong>
-                        <span style="background: #7209b7; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">Fechado</span>
+                        <strong>{{ c['nome'] }}</strong>
+                        <span class="badge-status badge-fechado">Fechado</span>
                     </div>
-                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ c[2] }}</span><br>
-                    <span style="color: #4cc9f0; font-size: 12px; font-weight: bold;">📄 Documento: {{ c[6] }}</span>
+                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ c['servico'] }}</span><br>
+                    <span style="color: #2ec4b6; font-size: 12px; font-weight: bold;">📄 Documento: {{ c['tipo_contrato'] }}</span><br>
+                    <span style="color: #ffb703; font-size: 12px;">Valor Fechado: R$ {{ "%.2f"|format(c['valor']) }}</span>
                     <div style="margin-top: 10px;">
-                        <a href="/ver_contrato/{{ c[0] }}" target="_blank" class="btn-action" style="background: #2ec4b6; color: #0b132b;">👁️ Ver Contrato em Texto</a>
+                        <a href="/ver_contrato/{{ c['id'] }}" target="_blank" class="btn-action" style="background: #2ec4b6; color: #0b132b;">👁️ Ver Contrato Emitido</a>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="color: #8d99ae; font-size: 13px; font-style: italic;">Ainda nenhum contrato fechado.</p>
+                <p style="color: #8d99ae; font-size: 12px; font-style: italic;">Nenhum contrato fechado ainda.</p>
             {% endif %}
         </div>
+    </div>
+</body>
+</html>
+'''
+
+DRE_TEMPLATE = '''
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONVERIS - DRE Corporativa</title>
+    <style>
+        body { background-color: #0b132b; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .box { background: #1c2541; padding: 25px; border-radius: 12px; border: 1px solid #3a506b; max-width: 800px; margin: 0 auto; }
+        h1 { color: #ffb703; font-size: 22px; margin-top: 0; border-bottom: 2px solid #3a506b; padding-bottom: 10px; }
+        .dre-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .dre-table th, .dre-table td { padding: 12px; text-align: left; border-bottom: 1px solid #3a506b; }
+        .dre-table th { background-color: #0b132b; color: #2ec4b6; }
+        .row-total { font-weight: bold; background-color: #0b132b; color: #ffb703; }
+        .row-lucro { font-weight: bold; background-color: #2ec4b6; color: #0b132b; }
+        .btn-voltar { background: #ffb703; color: #0b132b; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>📊 DRE Corporativa (Demonstração do Resultado do Exercício)</h1>
+        <p style="color: #8d99ae;">Relatório financeiro em tempo real dos contratos fechados.</p>
+        
+        <table class="dre-table">
+            <thead>
+                <tr>
+                    <th>Descrição do Item</th>
+                    <th style="text-align: right;">Valor (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>(+) Receita Bruta de Vendas (Contratos Fechados)</strong></td>
+                    <td style="text-align: right; color: #2ec4b6;">R$ {{ "%.2f"|format(receita_bruta) }}</td>
+                </tr>
+                <tr>
+                    <td>(-) Custos Operacionais Directos</td>
+                    <td style="text-align: right; color: #e63946;">R$ {{ "%.2f"|format(custos_totais) }}</td>
+                </tr>
+                <tr class="row-total">
+                    <td>(=) Margem de Contribuição / Resultado Bruto</td>
+                    <td style="text-align: right;">R$ {{ "%.2f"|format(lucro_liquido) }}</td>
+                </tr>
+                <tr>
+                    <td>(-) Despesas Administrativas e Comercialização (Impostos/Taxas ~10%)</td>
+                    <td style="text-align: right; color: #e63946;">R$ {{ "%.2f"|format(receita_bruta * 0.10) }}</td>
+                </tr>
+                <tr class="row-lucro">
+                    <td>(=) LUCRO LÍQUIDO OPERACIONAL</td>
+                    <td style="text-align: right;">R$ {{ "%.2f"|format(lucro_liquido - (receita_bruta * 0.10)) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a href="/painel" class="btn-voltar">← Voltar ao CRM</a>
     </div>
 </body>
 </html>
@@ -287,14 +396,14 @@ CONTRATO_VIEW_TEMPLATE = '''
 </head>
 <body>
     <div class="contract-box">
-        <h1>📄 {{ lead[6] }}</h1>
-        <p><strong>Contratante (Cliente):</strong> {{ lead[1] }}</p>
-        <p><strong>Telefone / WhatsApp:</strong> {{ lead[3] }}</p>
-        <p><strong>Serviço Contratado:</strong> {{ lead[2] }}</p>
+        <h1>📄 {{ lead['tipo_contrato'] }}</h1>
+        <p><strong>Contratante (Cliente):</strong> {{ lead['nome'] }}</p>
+        <p><strong>Telefone / WhatsApp:</strong> {{ lead['telefone'] }}</p>
+        <p><strong>Serviço Contratado:</strong> {{ lead['servico'] }}</p>
         <hr style="border-color: #3a506b; margin: 20px 0;">
-        <p><strong>CLÁUSULA PRIMEIRA - DO OBJETO:</strong> O presente instrumento tem como objeto a prestação de serviços especializados de assessoria e consultoria financeira referentes ao serviço de <em>{{ lead[2] }}</em>, prestados pela CONVERIS SOLUÇÕES FINANCEIRAS.</p>
-        <p><strong>CLÁUSULA SEGUNDA - DOS HONORÁRIOS:</strong> O valor acordado para a prestação dos serviços acima descritos é de R$ {{ lead[4] }}, pagos conforme as condições alinhadas no atendimento via canais oficiais.</p>
-        <p><strong>CLÁUSULA TERCEIRA - DAS OBRIGAÇÕES:</strong> A CONVERIS compromete-se a envidar todos os esforços técnicos e legais para o sucesso da demanda apresentada pelo contratante.</p>
+        <p><strong>CLÁUSULA PRIMEIRA - DO OBJETO:</strong> O presente instrumento tem como objeto a prestação de serviços especializados de assessoria financeira referentes a <em>{{ lead['servico'] }}</em>, prestados pela CONVERIS SOLUÇÕES FINANCEIRAS.</p>
+        <p><strong>CLÁUSULA SEGUNDA - DOS HONORÁRIOS:</strong> O valor acordado para a prestação dos serviços é de R$ {{ "%.2f"|format(lead['valor']) }}, pagos conforme acerto prévio.</p>
+        <p><strong>CLÁUSULA TERCEIRA - DAS OBRIGAÇÕES:</strong> A CONVERIS compromete-se a envidar todos os esforços técnicos e legais para o sucesso da demanda do cliente.</p>
         <br>
         <p style="text-align: center; color: #2ec4b6; font-weight: bold; border: 1px dashed #2ec4b6; padding: 10px; border-radius: 6px;">✅ Documento gerado eletronicamente e validado pelo CRM Converis.</p>
         <a href="/painel" class="btn-voltar">← Voltar ao CRM</a>
@@ -320,57 +429,18 @@ TREINAMENTO_TEMPLATE = '''
 </head>
 <body>
     <div class="box">
-        <h1>🎓 Módulos de Treinamento e Scripts</h1>
-        <p style="color: #8d99ae;">Instruções e abordagens comerciais para a equipa da Converis.</p>
+        <h1>🎓 Central de Treinamento & Scripts Comercial</h1>
+        <p style="color: #8d99ae;">Diretrizes de atendimento e abordagens para conversão de leads.</p>
         
         <div class="card-aula">
             <h3 style="color: #2ec4b6; margin-top: 0;">1. Abordagem Inicial - Superendividamento</h3>
-            <p style="font-size: 13px; color: #d8dee9;">"Olá, tudo bem? Notei o seu contacto sobre a repactuação de dívidas. O nosso objetivo é proteger o seu mínimo existencial e renegociar os valores em condições justas..."</p>
+            <p style="font-size: 13px; color: #d8dee9;">"Olá! Analisamos a sua solicitação. O nosso objetivo é proteger o seu mínimo existencial e repactuar os débitos em condições sustentáveis..."</p>
         </div>
 
         <div class="card-aula">
-            <h3 style="color: #2ec4b6; margin-top: 0;">2. Quebra de Objeções em Consignados</h3>
-            <p style="font-size: 13px; color: #d8dee9;">"Compreendo a dúvida sobre o desconto em folha. A nossa revisão foca em identificar cobranças indevidas de juros e taxas abusivas no contrato..."</p>
+            <h3 style="color: #2ec4b6; margin-top: 0;">2. Quebra de Objeções em Financiamentos</h3>
+            <p style="font-size: 13px; color: #d8dee9;">"A revisão contratual visa recalcular encargos abusivos para viabilizar a quitação ou regularização das parcelas atrasadas..."</p>
         </div>
-
-        <a href="/painel" class="btn-voltar">← Voltar ao CRM</a>
-    </div>
-</body>
-</html>
-'''
-
-LEILAO_TEMPLATE = '''
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS - Leilão de Leads (LED)</title>
-    <style>
-        body { background-color: #0b132b; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-        .box { background: #1c2541; padding: 25px; border-radius: 12px; border: 1px solid #3a506b; max-width: 800px; margin: 0 auto; }
-        h1 { color: #ffb703; font-size: 22px; margin-top: 0; }
-        .card-led { background: #0b132b; border: 1px solid #3a506b; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #ffb703; }
-        .btn-pegar { background: #2ec4b6; color: #0b132b; padding: 6px 12px; border-radius: 4px; font-weight: bold; text-decoration: none; font-size: 12px; display: inline-block; margin-top: 8px; }
-        .btn-voltar { background: #ffb703; color: #0b132b; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; }
-    </style>
-</head>
-<body>
-    <div class="box">
-        <h1>🚨 Leilão de Leads (Disponíveis para Assumir)</h1>
-        <p style="color: #8d99ae;">Leads sem consultor atribuído ou disponíveis para novo contacto rápido.</p>
-
-        {% if leads_livres %}
-            {% for lead in leads_livres %}
-            <div class="card-led">
-                <strong>{{ lead[1] }}</strong> - <span style="color:#ffb703;">{{ lead[2] }}</span><br>
-                <span style="font-size: 12px; color: #8d99ae;">Telefone: {{ lead[3] }}</span><br>
-                <a href="/painel" class="btn-pegar">⚡ Assumir Atendimento</a>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p style="color: #8d99ae; font-style: italic;">Nenhum lead em leilão no momento.</p>
-        {% endif %}
 
         <a href="/painel" class="btn-voltar">← Voltar ao CRM</a>
     </div>
@@ -384,7 +454,7 @@ CHAT_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS - Chat Interno</title>
+    <title>CONVERIS - Chat ao Vivo</title>
     <style>
         body { background-color: #0b132b; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
         .box { background: #1c2541; padding: 25px; border-radius: 12px; border: 1px solid #3a506b; max-width: 600px; margin: 0 auto; }
@@ -401,11 +471,11 @@ CHAT_TEMPLATE = '''
 </head>
 <body>
     <div class="box">
-        <h1>💬 Chat Interno da Equipa</h1>
+        <h1>💬 Chat ao Vivo da Equipa</h1>
         <div class="chat-box">
             {% for msg in mensagens %}
             <div class="msg">
-                <strong>{{ msg[1] }}:</strong> {{ msg[2] }} <span>({{ msg[3] }})</span>
+                <strong>{{ msg['autor'] }}:</strong> {{ msg['mensagem'] }} <span>({{ msg['data_envio'] }})</span>
             </div>
             {% endfor %}
         </div>
@@ -423,6 +493,10 @@ CHAT_TEMPLATE = '''
 def index():
     return render_template_string(FORM_TEMPLATE)
 
+@app.route('/catalogo')
+def catalogo():
+    return render_template_string(SERVICE_TEMPLATE, servicos=catalogo_servicos)
+
 @app.route('/etapa2', methods=['POST'])
 def etapa2():
     session['nome'] = request.form.get('nome')
@@ -432,112 +506,111 @@ def etapa2():
 @app.route('/etapa3', methods=['POST'])
 def etapa3():
     servico = request.form.get('servico')
-    nome = session.get('nome')
-    telefone = session.get('telefone')
+    nome = session.get('nome', 'Cliente')
+    telefone = session.get('telefone', '')
     tipo_contrato = CONTRATOS_POR_SERVICO.get(servico, "Contrato Geral de Prestação de Serviços")
-    if nome and telefone:
-        try:
-            conn = sqlite3.connect(DB_NAME)
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status, tipo_contrato) VALUES (?, ?, ?, ?, ?, ?)",
-                           (nome, servico, telefone, "54.00", "Pré-Venda", tipo_contrato))
-            conn.commit()
-            conn.close()
-        except Exception as e:
-            print("Erro ao inserir lead:", e)
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO leads (nome, servico, telefone, valor, custo, status, tipo_contrato) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (nome, servico, telefone, 1200.00, 200.00, "Pré-Venda", tipo_contrato))
+    conn.commit()
+    conn.close()
 
-    mensagem = f"Olá, meu nome é {nome}. Gostaria de atendimento sobre o serviço: {servico}."
+    mensagem = f"Olá, meu nome é {nome}. Gostaria de atendimento sobre: {servico}."
     whatsapp_url = f"https://wa.me/5551999797731?text={mensagem}"
     return render_template_string(REDIRECT_TEMPLATE, whatsapp_url=whatsapp_url)
 
 @app.route('/painel')
 def painel_equipe():
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM leads WHERE status != 'Contrato Fechado'")
-        leads = cursor.fetchall()
-        cursor.execute("SELECT * FROM leads WHERE status = 'Contrato Fechado'")
-        contratos_lista = cursor.fetchall()
-        conn.close()
-    except Exception:
-        leads = []
-        contratos_lista = []
+    conn = get_db_connection()
+    cursor = conn.cursor()
     
-    total_areceber = "54.00" if leads else "0,00"
-    total_recebido = "0,00"
-    total_fechados = len(contratos_lista)
-    return render_template_string(PANEL_TEMPLATE, leads=leads, contratos_lista=contratos_lista, 
-                                  total_areceber=total_areceber, total_recebido=total_recebido, 
-                                  total_fechados=total_fechados)
+    cursor.execute("SELECT * FROM leads WHERE status = 'Pré-Venda' ORDER BY id DESC")
+    leads_prevenda = cursor.fetchall()
+    
+    cursor.execute("SELECT * FROM leads WHERE status = 'Vendas' ORDER BY id DESC")
+    leads_vendas = cursor.fetchall()
+    
+    cursor.execute("SELECT * FROM leads WHERE status = 'Contrato Fechado' ORDER BY id DESC")
+    contratos_lista = cursor.fetchall()
+    
+    cursor.execute("SELECT SUM(valor) FROM leads WHERE status = 'Contrato Fechado'")
+    res = cursor.fetchone()[0]
+    faturamento = res if res else 0.0
+    
+    conn.close()
+    
+    return render_template_string(
+        PANEL_TEMPLATE, 
+        leads_prevenda=leads_prevenda,
+        leads_vendas=leads_vendas,
+        contratos_lista=contratos_lista,
+        total_prevenda=len(leads_prevenda),
+        total_vendas=len(leads_vendas),
+        total_fechados=len(contratos_lista),
+        faturamento=faturamento
+    )
+
+@app.route('/dre')
+def dre():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT SUM(valor) as receita, SUM(custo) as custo FROM leads WHERE status = 'Contrato Fechado'")
+    row = cursor.fetchone()
+    conn.close()
+    
+    receita_bruta = row['receita'] if row['receita'] else 0.0
+    custos_totais = row['custo'] if row['custo'] else 0.0
+    lucro_liquido = receita_bruta - custos_totais
+    
+    return render_template_string(DRE_TEMPLATE, receita_bruta=receita_bruta, custos_totais=custos_totais, lucro_liquido=lucro_liquido)
 
 @app.route('/treinamento')
 def treinamento():
     return render_template_string(TREINAMENTO_TEMPLATE)
 
-@app.route('/leilao_led')
-def leilao_led():
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM leads WHERE status = 'Pré-Venda'")
-        leads_livres = cursor.fetchall()
-        conn.close()
-    except Exception:
-        leads_livres = []
-    return render_template_string(LEILAO_TEMPLATE, leads_livres=leads_livres)
-
 @app.route('/chat_equipa')
 def chat_equipa():
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM chat_mensagens ORDER BY id DESC LIMIT 20")
-        mensagens = cursor.fetchall()
-        conn.close()
-    except Exception:
-        mensagens = []
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM chat_mensagens ORDER BY id DESC LIMIT 20")
+    mensagens = cursor.fetchall()
+    conn.close()
     return render_template_string(CHAT_TEMPLATE, mensagens=reversed(mensagens))
 
 @app.route('/enviar_chat', methods=['POST'])
 def enviar_chat():
     msg = request.form.get('mensagem')
     if msg:
-        try:
-            conn = sqlite3.connect(DB_NAME)
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO chat_mensagens (autor, mensagem) VALUES (?, ?)", ("Aquiles", msg))
-            conn.commit()
-            conn.close()
-        except Exception as e:
-            print("Erro no chat:", e)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO chat_mensagens (autor, mensagem) VALUES (?, ?)", ("Aquiles", msg))
+        conn.commit()
+        conn.close()
     return redirect(url_for('chat_equipa'))
 
 @app.route('/atualizar_status/<int:lead_id>/<path:novo_status>')
 def atualizar_status(lead_id, novo_status):
-    try:
-        status_formatado = novo_status.replace('_', ' ')
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("UPDATE leads SET status = ? WHERE id = ?", (status_formatado, lead_id))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        print("Erro ao atualizar status:", e)
+    status_formatado = novo_status.replace('_', ' ')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE leads SET status = ? WHERE id = ?", (status_formatado, lead_id))
+    conn.commit()
+    conn.close()
     return redirect(url_for('painel_equipe'))
 
 @app.route('/ver_contrato/<int:lead_id>')
 def ver_contrato(lead_id):
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM leads WHERE id = ?", (lead_id,))
-        lead = cursor.fetchone()
-        conn.close()
-        if lead:
-            return render_template_string(CONTRATO_VIEW_TEMPLATE, lead=lead)
-    except Exception as e:
-        print("Erro ao ver contrato:", e)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM leads WHERE id = ?", (lead_id,))
+    lead = cursor.fetchone()
+    conn.close()
+    if lead:
+        return render_template_string(CONTRATO_VIEW_TEMPLATE, lead=lead)
     return "Contrato não encontrado", 404
 
 if __name__ == '__main__':
