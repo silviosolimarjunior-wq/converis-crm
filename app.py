@@ -7,10 +7,17 @@ app.secret_key = 'converis_secret_key'
 
 DB_NAME = 'converis.db'
 
+# Mapeamento automático do serviço para o tipo de contrato
+CONTRATOS_POR_SERVICO = {
+    "Lei do Superendividamento": "Contrato de Superendividamento",
+    "Empréstimo Consignado do INSS": "Contrato de Revisão Consignado",
+    "Dívida do Cartão de Crédito": "Contrato de Renegociação de Cartão",
+    "Parcelas Atrasadas (Financiamentos)": "Contrato de Defesa de Financiamento"
+}
+
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    # Tabela de Leads
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS leads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,10 +25,10 @@ def init_db():
             servico TEXT,
             telefone TEXT,
             valor TEXT,
-            status TEXT
+            status TEXT,
+            tipo_contrato TEXT
         )
     ''')
-    # Tabela de Mensagens do Chat
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS mensagens (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,11 +39,10 @@ def init_db():
     ''')
     conn.commit()
     
-    # Inserir dados iniciais se a tabela estiver vazia
     cursor.execute('SELECT COUNT(*) FROM leads')
     if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status) VALUES (?, ?, ?, ?, ?)",
-                       ("Silvio Solimar silva da silva junior", "Financiamento/Veículos", "51990113071", "54.00", "Pré-Venda"))
+        cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status, tipo_contrato) VALUES (?, ?, ?, ?, ?, ?)",
+                       ("Silvio Solimar silva da silva junior", "Financiamento/Veículos", "51990113071", "54.00", "Pré-Venda", "Contrato de Defesa de Financiamento"))
     
     cursor.execute('SELECT COUNT(*) FROM mensagens')
     if cursor.fetchone()[0] == 0:
@@ -49,20 +55,19 @@ def init_db():
 init_db()
 
 catalogo_servicos = [
-    {"titulo": "Lei do Superendividamento", "desc": "Como Renegociar Dívidas e Proteger o seu Mínimo Existencial. Foco em readequação e fim dos juros abusivos."},
-    {"titulo": "Empréstimo Consignado do INSS", "desc": "Redução de até 50% na parcela com análise completa de contratos e taxas para aposentados e pensionistas."},
-    {"titulo": "Dívida do Cartão de Crédito", "desc": "Soluções para juros altos, pagamento mínimo e renegociação de faturas que viraram bola de neve."},
-    {"titulo": "Parcelas Atrasadas (Financiamentos)", "desc": "Soluções judiciais e extrajudiciais para veículos, consórcios e contratos com atraso."}
+    {"titulo": "Lei do Superendividamento", "desc": "Como Renegociar Dívidas e Proteger o seu Mínimo Existencial."},
+    {"titulo": "Empréstimo Consignado do INSS", "desc": "Redução de até 50% na parcela com análise completa de contratos."},
+    {"titulo": "Dívida do Cartão de Crédito", "desc": "Soluções para juros altos, pagamento mínimo e renegociação de faturas."},
+    {"titulo": "Parcelas Atrasadas (Financiamentos)", "desc": "Soluções judiciais e extrajudiciais para veículos e consórcios."}
 ]
 
 modulos_treinamento = [
-    {"titulo": "1. Abordagem Inicial e Empatia", "desc": "Entenda a dor do cliente (dívidas, superendividamento, juros abusivos) e demonstre segurança."},
-    {"titulo": "2. Análise Contratual e Diagnóstico", "desc": "Instruções sobre como solicitar os extratos e contratos ao cliente para verificar taxas e margem."},
-    {"titulo": "3. Argumentação de Vendas e Fechamento", "desc": "Como apresentar os benefícios da negociação e fechar o contrato com o cliente."},
-    {"titulo": "4. Utilização do CRM e Pós-Venda", "desc": "Como mover os leads pelo pipeline e manter o acompanhamento ativo via WhatsApp."}
+    {"titulo": "1. Abordagem Inicial e Empatia", "desc": "Entenda a dor do cliente e demonstre segurança."},
+    {"titulo": "2. Análise Contratual e Diagnóstico", "desc": "Instruções sobre como solicitar extratos e contratos."},
+    {"titulo": "3. Argumentação de Vendas e Fechamento", "desc": "Como apresentar os benefícios e fechar o contrato."},
+    {"titulo": "4. Utilização do CRM e Pós-Venda", "desc": "Como mover os leads pelo pipeline e manter o acompanhamento."}
 ]
 
-# ETAPA 1 DO CLIENTE
 FORM_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -89,7 +94,7 @@ FORM_TEMPLATE = '''
     <div class="box">
         <div class="logo-badge">∞</div>
         <h1>CONVERIS</h1>
-        <p>Preencha os seus dados para iniciar o atendimento personalizado.</p>
+        <p>Preencha os seus dados para iniciar o atendimento.</p>
         <form action="/etapa2" method="POST">
             <div class="form-group">
                 <label>O seu Nome Completo *</label>
@@ -107,7 +112,6 @@ FORM_TEMPLATE = '''
 </html>
 '''
 
-# ETAPA 2 DO CLIENTE
 SERVICE_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -143,7 +147,6 @@ SERVICE_TEMPLATE = '''
 </html>
 '''
 
-# ETAPA 3 DO CLIENTE
 REDIRECT_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -177,7 +180,6 @@ REDIRECT_TEMPLATE = '''
 </html>
 '''
 
-# PAINEL INTERNO DA EQUIPA
 PANEL_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -235,7 +237,6 @@ PANEL_TEMPLATE = '''
     </header>
 
     <div class="container">
-        <!-- BOTÕES DE NAVEGAÇÃO -->
         <div class="nav-tabs">
             <a href="/painel" class="nav-btn active">🏠 Início</a>
             <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b;">📋 Gestão de Leads</a>
@@ -246,7 +247,6 @@ PANEL_TEMPLATE = '''
             <a href="#dre-section" class="nav-btn" style="background: #4361ee;">📊 DRE Corporativa</a>
         </div>
 
-        <!-- Dashboard / Métricas de Caixa -->
         <div class="section-box" id="dashboard-section">
             <h3>🏠 Dashboard & Métricas Financeiras</h3>
             <div class="grid-cards" style="margin-bottom:0;">
@@ -265,7 +265,6 @@ PANEL_TEMPLATE = '''
             </div>
         </div>
 
-        <!-- Gestão de Leads / Funil -->
         <div class="section-box" id="leads-section">
             <h3>📋 Gestão de Leads & Funil de Atendimento</h3>
             <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
@@ -282,19 +281,19 @@ PANEL_TEMPLATE = '''
                     <span style="background: #ffb703; color: #0b132b; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">{{ lead[5] }}</span>
                 </div>
                 <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead[2] }}</span><br>
-                <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead[3] }}</span>
+                <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead[3] }}</span><br>
+                <span style="color: #4cc9f0; font-size: 12px; font-weight: bold;">📝 Contrato: {{ lead[6] }}</span>
                 <div style="color: #2ec4b6; font-weight: bold; margin-top: 4px;">R$ {{ lead[4] }}</div>
                 
                 <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
                     <a href="https://wa.me/{{ lead[3] }}?text=Olá%20{{ lead[1] }},%20estamos%20a%20entrar%20em%20contacto." target="_blank" class="btn-whats">📱 WhatsApp</a>
                     <a href="/atualizar_status/{{ lead[0] }}/Vendas" class="btn-action" style="background: #3a506b; color: white;">Mover p/ Vendas</a>
-                    <a href="/atualizar_status/{{ lead[0] }}/Contrato Fechado" class="btn-action">📄 Fechar Contrato</a>
+                    <a href="/atualizar_status/{{ lead[0] }}/Contrato_Fechado" class="btn-action">📄 Fechar Contrato</a>
                 </div>
             </div>
             {% endfor %}
         </div>
 
-        <!-- Catálogo Interno -->
         <div class="section-box" id="catalogo-section">
             <h3>📦 Catálogo de Serviços Disponíveis</h3>
             {% for serv in catalogo_servicos %}
@@ -305,7 +304,6 @@ PANEL_TEMPLATE = '''
             {% endfor %}
         </div>
 
-        <!-- Chat ao Vivo -->
         <div class="section-box" id="chat-section">
             <h3>💬 Chat ao Vivo com Clientes</h3>
             <div class="chat-box">
@@ -327,7 +325,6 @@ PANEL_TEMPLATE = '''
             </form>
         </div>
 
-        <!-- Treinamento -->
         <div class="section-box" id="treinamento-section">
             <h3>🎓 Treinamento da Equipa</h3>
             {% for mod in modulos_treinamento %}
@@ -338,7 +335,6 @@ PANEL_TEMPLATE = '''
             {% endfor %}
         </div>
 
-        <!-- DRE Corporativa -->
         <div class="section-box" id="dre-section">
             <h3>📊 DRE Corporativa</h3>
             <div class="dre-linha">
@@ -362,7 +358,6 @@ PANEL_TEMPLATE = '''
 </html>
 '''
 
-# Rotas da Aplicação
 @app.route('/')
 def index():
     return render_template_string(FORM_TEMPLATE)
@@ -379,15 +374,21 @@ def etapa3():
     nome = session.get('nome')
     telefone = session.get('telefone')
     
+    # Atribui o contrato automaticamente com base no serviço escolhido
+    tipo_contrato = CONTRATOS_POR_SERVICO.get(servico, "Contrato Geral de Prestação de Serviços")
+    
     if nome and telefone:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status) VALUES (?, ?, ?, ?, ?)",
-                       (nome, servico, telefone, "54.00", "Pré-Venda"))
-        cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)",
-                       (f"Cliente ({nome})", f"Interesse em: {servico}", "Agora"))
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(DB_NAME)
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO leads (nome, servico, telefone, valor, status, tipo_contrato) VALUES (?, ?, ?, ?, ?, ?)",
+                           (nome, servico, telefone, "54.00", "Pré-Venda", tipo_contrato))
+            cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)",
+                           (f"Cliente ({nome})", f"Interesse em: {servico}", "Agora"))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print("Erro ao inserir lead:", e)
 
     mensagem = f"Olá, meu nome é {nome}. Gostaria de atendimento sobre o serviço: {servico}."
     whatsapp_url = f"https://wa.me/5551999797731?text={mensagem}"
@@ -396,14 +397,18 @@ def etapa3():
 
 @app.route('/painel')
 def painel_equipe():
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM leads")
-    leads = cursor.fetchall()
-    
-    cursor.execute("SELECT * FROM mensagens")
-    mensagens_chat = cursor.fetchall()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM leads")
+        leads = cursor.fetchall()
+        
+        cursor.execute("SELECT * FROM mensagens")
+        mensagens_chat = cursor.fetchall()
+        conn.close()
+    except Exception:
+        leads = []
+        mensagens_chat = []
     
     total_areceber = "54.00"
     total_recebido = "0,00"
@@ -412,25 +417,32 @@ def painel_equipe():
                                   catalogo_servicos=catalogo_servicos, modulos_treinamento=modulos_treinamento,
                                   total_areceber=total_areceber, total_recebido=total_recebido)
 
-@app.route('/atualizar_status/<int:lead_id>/<novo_status>')
+@app.route('/atualizar_status/<int:lead_id>/<path:novo_status>')
 def atualizar_status(lead_id, novo_status):
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute("UPDATE leads SET status = ? WHERE id = ?", (novo_status, lead_id))
-    conn.commit()
-    conn.close()
+    try:
+        status_formatado = novo_status.replace('_', ' ')
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE leads SET status = ? WHERE id = ?", (status_formatado, lead_id))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print("Erro ao atualizar status:", e)
     return redirect(url_for('painel_equipe') + '#leads-section')
 
 @app.route('/enviar_chat', methods=['POST'])
 def enviar_chat():
     texto = request.form.get('texto_mensagem')
     if texto:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)",
-                       ("Atendente (Aquiles)", texto, "Agora"))
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(DB_NAME)
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO mensagens (remetente, texto, hora) VALUES (?, ?, ?)",
+                           ("Atendente (Aquiles)", texto, "Agora"))
+            conn.commit()
+            conn.close()
+        except Exception:
+            pass
     return redirect(url_for('painel_equipe') + '#chat-section')
 
 @app.route('/manifest.json')
