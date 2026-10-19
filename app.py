@@ -26,19 +26,82 @@ modulos_treinamento = [
     {"titulo": "4. Utilização do CRM e Pós-Venda", "desc": "Como mover os leads pelo pipeline (Pré-Venda ➔ Vendas ➔ Contratos Fechados) e manter o acompanhamento ativo via WhatsApp."}
 ]
 
-HTML_TEMPLATE = '''
+# TELA DO CLIENTE (O que o cliente vê ao abrir o link principal)
+CLIENT_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS CRM</title>
-    
+    <title>CONVERIS - Soluções Financeiras</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0b132b">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; }
+        header { background: #0b132b; padding: 20px; border-bottom: 2px solid #ffb703; display: flex; align-items: center; justify-content: space-between; }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-badge { background: #7209b7; color: white; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; }
+        .container { max-width: 900px; margin: 20px auto; padding: 15px; }
+        .hero { background: linear-gradient(135deg, #1c2541, #0b132b); border: 1px solid #3a506b; padding: 30px 20px; border-radius: 12px; text-align: center; margin-bottom: 25px; }
+        .hero h1 { color: #ffb703; margin-top: 0; font-size: 26px; }
+        .hero p { color: #8d99ae; font-size: 15px; margin-bottom: 25px; }
+        .btn-cta { background: #2ec4b6; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(46, 196, 182, 0.4); }
+        .section-title { color: #ffb703; font-size: 20px; margin-bottom: 15px; border-bottom: 1px solid #3a506b; padding-bottom: 8px; }
+        .catalog-card { background: #1c2541; border: 1px solid #3a506b; padding: 18px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #ffb703; }
+        .catalog-card h3 { margin: 0 0 8px 0; color: #ffffff; font-size: 18px; }
+        .catalog-card p { margin: 0 0 15px 0; font-size: 14px; color: #d8dee9; line-height: 1.5; }
+        .btn-whats { background: #2ec4b6; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; }
+        footer { text-align: center; padding: 25px; color: #8d99ae; font-size: 13px; border-top: 1px solid #1c2541; margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-area">
+            <div class="logo-badge">∞</div>
+            <div>
+                <h2 style="margin:0; font-size:20px;">CONVERIS</h2>
+                <span style="font-size:12px; color: #8d99ae;">SOLUÇÕES FINANCEIRAS • JUDICIAL E EXTRAJUDICIAL</span>
+            </div>
+        </div>
+        <a href="/painel" style="background: #1c2541; color: #ffb703; border: 1px solid #3a506b; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold;">🔒 Área da Equipe</a>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Mais que negociação, tranquilidade para o seu futuro.</h1>
+            <p>Especialistas na Lei do Superendividamento, Empréstimo Consignado INSS, Cartão de Crédito e Financiamentos. Atendimento em todo o Brasil!</p>
+            <a href="https://wa.me/5551999797731?text=Olá,%20gostaria%20de%20atendimento%20e%20análise%20do%20meu%20contrato." target="_blank" class="btn-cta">💬 Falar com a Converis pelo WhatsApp</a>
+        </div>
+
+        <div class="section-title">📦 Nossos Serviços & Catálogo</div>
+        
+        {% for serv in catalogo_servicos %}
+        <div class="catalog-card">
+            <h3>{{ serv.titulo }}</h3>
+            <p>{{ serv.desc }}</p>
+            <a href="https://wa.me/5551999797731?text=Olá,%2520gostaria%2520de%2520saber%2520mais%2520sobre:%2520{{ serv.titulo }}" target="_blank" class="btn-whats">📱 Consultar este serviço via WhatsApp</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <footer>
+        <p>📞 Atendimento Telefónico / WhatsApp: (51) 99979-7731<br>© 2026 Converis Soluções Financeiras. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>
+'''
+
+# TELA DO PAINEL DA EQUIPE (/painel)
+PANEL_TEMPLATE = '''
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONVERIS - Painel da Equipe</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0b132b">
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; }
@@ -47,7 +110,6 @@ HTML_TEMPLATE = '''
         .logo-badge { background: #7209b7; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; }
         .container { max-width: 1100px; margin: 15px auto; padding: 10px; }
         
-        /* Menu superior completo */
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
         .nav-btn { background: #1c2541; color: white; border: none; padding: 10px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; border: 1px solid #3a506b; display: inline-flex; align-items: center; gap: 6px; }
         .nav-btn.active { background: #ffb703; color: #0b132b; border: none; }
@@ -62,7 +124,6 @@ HTML_TEMPLATE = '''
         .section-box h3 { margin-top: 0; color: #ffb703; font-size: 16px; display: flex; align-items: center; gap: 8px; }
         
         .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; margin-bottom: 12px; }
-        .catalog-card { background: #0b132b; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #ffb703; }
         .training-card { background: #0b132b; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #2ec4b6; }
         
         .form-group { margin-bottom: 12px; }
@@ -90,9 +151,10 @@ HTML_TEMPLATE = '''
             <div class="logo-badge">∞</div>
             <div>
                 <h2 style="margin:0; font-size:18px;">CONVERIS CRM</h2>
-                <span style="font-size:11px; color: #8d99ae;">ÁREA DA EQUIPE • AQUILES VENDAS</span>
+                <span style="font-size:11px; color: #8d99ae;">PAINEL INTERNO • AQUILES VENDAS</span>
             </div>
         </div>
+        <a href="/" style="background: #1c2541; color: #2ec4b6; border: 1px solid #3a506b; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold;">🌐 Ver Site do Cliente</a>
     </header>
 
     <div class="container">
@@ -102,11 +164,10 @@ HTML_TEMPLATE = '''
             <button id="pwa-install-btn">Instalar App</button>
         </div>
 
-        <!-- Menu de Navegação Superior Completo -->
+        <!-- Menu Superior Completo -->
         <div class="nav-tabs">
-            <a href="/" class="nav-btn active">🏠 Início</a>
+            <a href="/painel" class="nav-btn active">🏠 Início</a>
             <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b;">📋 Gestão de Leads</a>
-            <a href="#catalogo-section" class="nav-btn" style="background: #3a506b;">📦 Catálogo</a>
             <a href="#treinamento-section" class="nav-btn" style="background: #4cc9f0; color: #0b132b;">🎓 Treinamento</a>
             <a href="#leads-section" class="nav-btn" style="background: #e76f51;">⏳ Pré-Venda</a>
             <a href="#leads-section" class="nav-btn" style="background: #2a9d8f;">🤝 Vendas</a>
@@ -130,19 +191,6 @@ HTML_TEMPLATE = '''
                 <h3>TOTAL INADIMPLENTE / DEVENDO</h3>
                 <div class="value" style="color: #e71d36;">R$ 0,00</div>
             </div>
-        </div>
-
-        <!-- Catálogo de Serviços -->
-        <div class="section-box" id="catalogo-section">
-            <h3>📦 Catálogo de Serviços - Converis Soluções Financeiras</h3>
-            <p style="font-size: 13px; color: #8d99ae; margin-top:0;">Soluções judiciais e extrajudiciais para renegociação de dívidas e proteção do património.</p>
-            {% for serv in catalogo_servicos %}
-            <div class="catalog-card">
-                <strong>{{ serv.titulo }}</strong>
-                <p style="margin: 6px 0 0 0; font-size: 13px; color: #d8dee9;">{{ serv.desc }}</p>
-                <a href="https://wa.me/5551999797731?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20o%20serviço:%20{{ serv.titulo }}" target="_blank" class="btn-whats">📱 Consultar via Whats</a>
-            </div>
-            {% endfor %}
         </div>
 
         <!-- Módulos de Treinamento -->
@@ -285,8 +333,12 @@ HTML_TEMPLATE = '''
 '''
 
 @app.route('/')
-def index():
-    return render_template_string(HTML_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat, catalogo_servicos=catalogo_servicos, modulos_treinamento=modulos_treinamento)
+def index_cliente():
+    return render_template_string(CLIENT_TEMPLATE, catalogo_servicos=catalogo_servicos)
+
+@app.route('/painel')
+def painel_equipe():
+    return render_template_string(PANEL_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat, modulos_treinamento=modulos_treinamento)
 
 @app.route('/manifest.json')
 def manifest():
@@ -301,14 +353,14 @@ def add_lead():
     valor = request.form.get('valor')
     status = request.form.get('status') or 'Pré-Venda'
     leads.append({"id": novo_id, "nome": nome, "servico": servico, "telefone": telefone, "valor": valor, "status": status})
-    return redirect(url_for('index') + '#leads-section')
+    return redirect(url_for('painel_equipe') + '#leads-section')
 
 @app.route('/enviar_chat', methods=['POST'])
 def enviar_chat():
     texto = request.form.get('texto_mensagem')
     if texto:
         mensagens_chat.append({"remetente": "Atendente (Aquiles)", "texto": texto})
-    return redirect(url_for('index') + '#chat-section')
+    return redirect(url_for('painel_equipe') + '#chat-section')
 
 if __name__ == '__main__':
     app.run()
