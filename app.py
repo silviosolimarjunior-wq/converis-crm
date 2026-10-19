@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 # Dados em memória para Leads e Chat
 leads = [
-    {"id": 1, "nome": "Silvio Solimar silva da silva junior", "servico": "Financiamento/Veículos", "telefone": "51990113071", "valor": "54.00", "status": "Novo Lead"}
+    {"id": 1, "nome": "Silvio Solimar silva da silva junior", "servico": "Financiamento/Veículos", "telefone": "51990113071", "valor": "54.00", "status": "Pré-Venda"}
 ]
 
 mensagens_chat = [
@@ -27,9 +27,9 @@ HTML_TEMPLATE = '''
         .logo-badge { background: #7209b7; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; }
         .container { max-width: 1100px; margin: 15px auto; padding: 10px; }
         
-        /* Barra de navegação com botões Início, Chat e DRE no topo */
+        /* Menu superior com todos os botões de navegação e pipeline */
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .nav-btn { background: #1c2541; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; border: 1px solid #3a506b; display: inline-flex; align-items: center; gap: 6px; }
+        .nav-btn { background: #1c2541; color: white; border: none; padding: 10px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; border: 1px solid #3a506b; display: inline-flex; align-items: center; gap: 6px; }
         .nav-btn.active { background: #ffb703; color: #0b132b; border: none; }
         .nav-btn:hover { opacity: 0.9; }
         
@@ -70,14 +70,15 @@ HTML_TEMPLATE = '''
     </header>
 
     <div class="container">
-        <!-- Menu com opções Início, Chat e DRE no topo -->
+        <!-- Navegação Superior Completa -->
         <div class="nav-tabs">
             <a href="/" class="nav-btn active">🏠 Início</a>
+            <a href="#leads-section" class="nav-btn" style="background: #e76f51;">⏳ Pré-Venda (Espera)</a>
+            <a href="#leads-section" class="nav-btn" style="background: #2a9d8f;">🤝 Vendas (Em Atendimento)</a>
+            <a href="#leads-section" class="nav-btn" style="background: #264653;">✅ Concluídas</a>
+            <a href="#leads-section" class="nav-btn" style="background: #e9c46a; color: #0b132b;">📄 Contratos Fechados</a>
             <a href="#chat-section" class="nav-btn" style="background: #28385e;">💬 Chat ao Vivo</a>
             <a href="#dre-section" class="nav-btn" style="background: #7209b7;">📊 DRE Corporativa</a>
-            <a href="#" class="nav-btn">📋 Gestão de Leads (Atendimento)</a>
-            <a href="#" class="nav-btn">📦 Catálogo</a>
-            <a href="#" class="nav-btn">🎓 Treinamento</a>
         </div>
 
         <!-- Cards de Métricas -->
@@ -96,7 +97,7 @@ HTML_TEMPLATE = '''
             </div>
         </div>
 
-        <!-- Chat de Atendimento ao Cliente -->
+        <!-- Chat de Atendimento -->
         <div class="section-box" id="chat-section">
             <h3>💬 Chat de Atendimento ao Cliente</h3>
             <div class="chat-box">
@@ -142,16 +143,28 @@ HTML_TEMPLATE = '''
                         <input type="text" name="valor" required placeholder="54.00">
                     </div>
                 </div>
+                <div class="form-group">
+                    <label>Etapa Inicial</label>
+                    <select name="status">
+                        <option value="Pré-Venda">⏳ Pré-Venda (Espera)</option>
+                        <option value="Em Atendimento">🤝 Vendas (Em Atendimento)</option>
+                        <option value="Concluída">✅ Concluída</option>
+                        <option value="Contrato Fechado">📄 Contrato Fechado</option>
+                    </select>
+                </div>
                 <button type="submit" class="submit-btn">Adicionar Card</button>
             </form>
         </div>
 
-        <!-- Leads e WhatsApp -->
-        <div class="section-box">
-            <h3>🔵 Novo Lead (Entrada WhatsApp)</h3>
+        <!-- Pipeline de Leads e Atendimento -->
+        <div class="section-box" id="leads-section">
+            <h3>🔵 Pipeline de Atendimento & Gestão de Clientes</h3>
             {% for lead in leads %}
             <div class="lead-card">
-                <strong>{{ lead.nome }}</strong><br>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong>{{ lead.nome }}</strong>
+                    <span style="background: #ffb703; color: #0b132b; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">{{ lead.status }}</span>
+                </div>
                 <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead.servico }}</span><br>
                 <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead.telefone }}</span>
                 <div style="color: #2ec4b6; font-weight: bold; margin-top: 4px;">R$ {{ lead.valor }}</div>
@@ -160,7 +173,7 @@ HTML_TEMPLATE = '''
             {% endfor %}
         </div>
 
-        <!-- DRE Corporativa Detalhada -->
+        <!-- DRE Corporativa -->
         <div class="section-box" id="dre-section">
             <h3>📊 DRE Corporativa Detalhada</h3>
             <div class="dre-linha">
@@ -199,8 +212,9 @@ def add_lead():
     servico = request.form.get('servico')
     telefone = request.form.get('telefone')
     valor = request.form.get('valor')
-    leads.append({"id": novo_id, "nome": nome, "servico": servico, "telefone": telefone, "valor": valor, "status": "Novo Lead"})
-    return redirect(url_for('index'))
+    status = request.form.get('status') or 'Pré-Venda'
+    leads.append({"id": novo_id, "nome": nome, "servico": servico, "telefone": telefone, "valor": valor, "status": status})
+    return redirect(url_for('index') + '#leads-section')
 
 @app.route('/enviar_chat', methods=['POST'])
 def enviar_chat():
