@@ -18,7 +18,14 @@ HTML_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS - Painel de Vendas</title>
+    <title>CONVERIS CRM</title>
+    
+    <!-- Configurações para Web App / PWA -->
+    <meta name="theme-color" content="#0b132b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Converis CRM">
+    
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; }
@@ -27,7 +34,7 @@ HTML_TEMPLATE = '''
         .logo-badge { background: #7209b7; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; }
         .container { max-width: 1100px; margin: 15px auto; padding: 10px; }
         
-        /* Menu superior com todos os botões de navegação e pipeline */
+        /* Menu superior completo */
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
         .nav-btn { background: #1c2541; color: white; border: none; padding: 10px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; border: 1px solid #3a506b; display: inline-flex; align-items: center; gap: 6px; }
         .nav-btn.active { background: #ffb703; color: #0b132b; border: none; }
@@ -56,6 +63,10 @@ HTML_TEMPLATE = '''
         
         .dre-linha { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #28385e; font-size: 13px; }
         .dre-total { font-weight: bold; color: #4cc9f0; font-size: 15px; margin-top: 10px; }
+
+        /* Banner de Instalação PWA */
+        #pwa-install-banner { display: none; background: #7209b7; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold; justify-content: space-between; align-items: center; }
+        #pwa-install-btn { background: #ffb703; color: #0b132b; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -70,9 +81,19 @@ HTML_TEMPLATE = '''
     </header>
 
     <div class="container">
+        <!-- Banner de Instalação do App -->
+        <div id="pwa-install-banner">
+            <span>📲 Instalar Converis CRM no celular</span>
+            <button id="pwa-install-btn">Instalar</button>
+        </div>
+
         <!-- Navegação Superior Completa -->
         <div class="nav-tabs">
             <a href="/" class="nav-btn active">🏠 Início</a>
+            <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b;">📋 Gestão de Leads (Atendimento)</a>
+            <a href="#" class="nav-btn">🏠 Dashboard</a>
+            <a href="#" class="nav-btn">📦 Catálogo</a>
+            <a href="#" class="nav-btn">🎓 Treinamento</a>
             <a href="#leads-section" class="nav-btn" style="background: #e76f51;">⏳ Pré-Venda (Espera)</a>
             <a href="#leads-section" class="nav-btn" style="background: #2a9d8f;">🤝 Vendas (Em Atendimento)</a>
             <a href="#leads-section" class="nav-btn" style="background: #264653;">✅ Concluídas</a>
@@ -81,7 +102,7 @@ HTML_TEMPLATE = '''
             <a href="#dre-section" class="nav-btn" style="background: #7209b7;">📊 DRE Corporativa</a>
         </div>
 
-        <!-- Cards de Métricas -->
+        <!-- Cards de Caixa -->
         <div class="grid-cards">
             <div class="card-metric">
                 <h3>JÁ RECEBIDO (CAIXA)</h3>
@@ -173,7 +194,7 @@ HTML_TEMPLATE = '''
             {% endfor %}
         </div>
 
-        <!-- DRE Corporativa -->
+        <!-- DRE Corporativa Detalhada -->
         <div class="section-box" id="dre-section">
             <h3>📊 DRE Corporativa Detalhada</h3>
             <div class="dre-linha">
@@ -197,6 +218,29 @@ HTML_TEMPLATE = '''
             </div>
         </div>
     </div>
+
+    <!-- Script de PWA para Instalação no Celular -->
+    <script>
+        let deferredPrompt;
+        const banner = document.getElementById('pwa-install-banner');
+        const installBtn = document.getElementById('pwa-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            banner.style.display = 'flex';
+        });
+
+        installBtn.addEventListener('click', () => {
+            banner.style.display = 'none';
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    deferredPrompt = null;
+                });
+            }
+        });
+    </script>
 </body>
 </html>
 '''
