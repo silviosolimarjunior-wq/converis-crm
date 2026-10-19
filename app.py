@@ -1,8 +1,8 @@
-from flask import Flask, render_template_string, request, redirect, url_for
+from flask import Flask, render_template_string, request, redirect, url_for, send_from_directory
+import os
 
 app = Flask(__name__)
 
-# Dados em memória para Leads e Chat
 leads = [
     {"id": 1, "nome": "Silvio Solimar silva da silva junior", "servico": "Financiamento/Veículos", "telefone": "51990113071", "valor": "54.00", "status": "Pré-Venda"}
 ]
@@ -20,11 +20,11 @@ HTML_TEMPLATE = '''
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONVERIS CRM</title>
     
-    <!-- Configurações para Web App / PWA -->
+    <!-- Link essencial para o navegador reconhecer como Aplicativo -->
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0b132b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Converis CRM">
     
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -64,9 +64,9 @@ HTML_TEMPLATE = '''
         .dre-linha { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #28385e; font-size: 13px; }
         .dre-total { font-weight: bold; color: #4cc9f0; font-size: 15px; margin-top: 10px; }
 
-        /* Banner de Instalação PWA */
-        #pwa-install-banner { display: none; background: #7209b7; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold; justify-content: space-between; align-items: center; }
-        #pwa-install-btn { background: #ffb703; color: #0b132b; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        /* Botão / Banner de Instalação PWA */
+        #pwa-install-banner { display: none; background: #7209b7; color: white; padding: 14px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold; justify-content: space-between; align-items: center; border: 1px solid #9d4edd; }
+        #pwa-install-btn { background: #ffb703; color: #0b132b; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -81,23 +81,23 @@ HTML_TEMPLATE = '''
     </header>
 
     <div class="container">
-        <!-- Banner de Instalação do App -->
+        <!-- Banner de Instalação Dinâmico -->
         <div id="pwa-install-banner">
-            <span>📲 Instalar Converis CRM no celular</span>
-            <button id="pwa-install-btn">Instalar</button>
+            <span>📲 Deseja instalar o Converis CRM como Aplicativo?</span>
+            <button id="pwa-install-btn">Instalar App</button>
         </div>
 
-        <!-- Navegação Superior Completa -->
+        <!-- Menu de Navegação Superior Completo -->
         <div class="nav-tabs">
             <a href="/" class="nav-btn active">🏠 Início</a>
-            <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b;">📋 Gestão de Leads (Atendimento)</a>
+            <a href="#leads-section" class="nav-btn" style="background: #ffb703; color: #0b132b;">📋 Gestão de Leads</a>
             <a href="#" class="nav-btn">🏠 Dashboard</a>
             <a href="#" class="nav-btn">📦 Catálogo</a>
             <a href="#" class="nav-btn">🎓 Treinamento</a>
-            <a href="#leads-section" class="nav-btn" style="background: #e76f51;">⏳ Pré-Venda (Espera)</a>
-            <a href="#leads-section" class="nav-btn" style="background: #2a9d8f;">🤝 Vendas (Em Atendimento)</a>
+            <a href="#leads-section" class="nav-btn" style="background: #e76f51;">⏳ Pré-Venda</a>
+            <a href="#leads-section" class="nav-btn" style="background: #2a9d8f;">🤝 Vendas</a>
             <a href="#leads-section" class="nav-btn" style="background: #264653;">✅ Concluídas</a>
-            <a href="#leads-section" class="nav-btn" style="background: #e9c46a; color: #0b132b;">📄 Contratos Fechados</a>
+            <a href="#leads-section" class="nav-btn" style="background: #e9c46a; color: #0b132b;">📄 Contratos</a>
             <a href="#chat-section" class="nav-btn" style="background: #28385e;">💬 Chat ao Vivo</a>
             <a href="#dre-section" class="nav-btn" style="background: #7209b7;">📊 DRE Corporativa</a>
         </div>
@@ -219,7 +219,7 @@ HTML_TEMPLATE = '''
         </div>
     </div>
 
-    <!-- Script de PWA para Instalação no Celular -->
+    <!-- Script de Instalação do PWA -->
     <script>
         let deferredPrompt;
         const banner = document.getElementById('pwa-install-banner');
@@ -248,6 +248,10 @@ HTML_TEMPLATE = '''
 @app.route('/')
 def index():
     return render_template_string(HTML_TEMPLATE, leads=leads, mensagens_chat=mensagens_chat)
+
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('.', 'manifest.json')
 
 @app.route('/add', methods=['POST'])
 def add_lead():
