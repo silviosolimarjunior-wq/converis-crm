@@ -3,7 +3,7 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-app.secret_key = 'converis_secret_key_enterprise'
+app.secret_key = 'converis_secret_key'
 
 # Na Vercel, o único diretório com permissão de escrita é /tmp
 DB_PATH = '/tmp/converis.db'
@@ -78,48 +78,38 @@ FORM_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS - Soluções Financeiras Corporativas</title>
+    <title>CONVERIS - Soluções Financeiras</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        body { background-color: #060a17; color: #f8fafc; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .box { background: #0f172a; padding: 35px; border-radius: 16px; border: 1px solid #1e293b; width: 100%; max-width: 460px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
-        .logo-header { display: flex; align-items: center; gap: 12px; margin-bottom: 25px; }
-        .logo-badge { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; }
-        h1 { color: #f8fafc; font-size: 20px; margin: 0; font-weight: 600; }
-        .subtitle { color: #94a3b8; font-size: 13px; margin: 4px 0 0 0; }
-        p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
-        .form-group { text-align: left; margin-bottom: 18px; }
-        label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: #cbd5e1; }
-        input { width: 100%; padding: 12px 14px; background: #020617; border: 1px solid #334155; color: white; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; }
-        input:focus { outline: none; border-color: #3b82f6; }
-        button { background: #3b82f6; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 15px; margin-top: 10px; transition: background 0.2s; }
-        button:hover { background: #2563eb; }
-        .team-link { display: block; margin-top: 25px; color: #38bdf8; font-size: 13px; text-decoration: none; text-align: center; font-weight: 500; }
-        .team-link:hover { text-decoration: underline; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { background: #1c2541; padding: 30px; border-radius: 12px; border: 1px solid #3a506b; width: 100%; max-width: 450px; text-align: center; }
+        .logo-badge { background: #7209b7; color: white; width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin: 0 auto 20px; }
+        h1 { color: #ffb703; font-size: 24px; margin-bottom: 10px; }
+        p { color: #8d99ae; font-size: 14px; margin-bottom: 25px; }
+        .form-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 13px; color: #8d99ae; }
+        input { width: 100%; padding: 12px; background: #0b132b; border: 1px solid #3a506b; color: white; border-radius: 6px; font-size: 14px; }
+        button { background: #ffb703; color: #0b132b; border: none; padding: 14px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-top: 15px; }
+        .team-link { display: block; margin-top: 20px; color: #2ec4b6; font-size: 12px; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="box">
-        <div class="logo-header">
-            <div class="logo-badge">C</div>
-            <div>
-                <h1>CONVERIS</h1>
-                <div class="subtitle">Soluções Financeiras & Jurídicas</div>
-            </div>
-        </div>
-        <p>Preencha seus dados cadastrais abaixo para iniciar o atendimento especializado.</p>
+        <div class="logo-badge">∞</div>
+        <h1>🏠 CONVERIS</h1>
+        <p>Preencha os seus dados para iniciar o atendimento.</p>
         <form action="/etapa2" method="POST">
             <div class="form-group">
-                <label>Nome Completo *</label>
-                <input type="text" name="nome" required placeholder="Digite o seu nome completo">
+                <label>O seu Nome Completo *</label>
+                <input type="text" name="nome" required placeholder="Digite o seu nome">
             </div>
             <div class="form-group">
-                <label>WhatsApp / Telefone de Contato *</label>
-                <input type="text" name="telefone" required placeholder="Ex: 51999999999">
+                <label>O seu WhatsApp / Telefone *</label>
+                <input type="text" name="telefone" required placeholder="51999999999">
             </div>
-            <button type="submit">Avançar para Catálogo ➔</button>
+            <button type="submit">Avançar para Catálogo de Serviços 📦</button>
         </form>
-        <a href="/painel" class="team-link">🔒 Acesso Restrito: Painel Corporativo (CRM)</a>
+        <a href="/painel" class="team-link">🔒 Área da Equipe (CRM)</a>
     </div>
 </body>
 </html>
@@ -133,26 +123,24 @@ SERVICE_TEMPLATE = '''
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONVERIS - Catálogo de Serviços</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: #060a17; color: #f8fafc; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .box { background: #0f172a; padding: 30px; border-radius: 16px; border: 1px solid #1e293b; width: 100%; max-width: 550px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
-        h1 { color: #f8fafc; font-size: 22px; margin-bottom: 8px; font-weight: 600; }
-        p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
-        .service-btn { background: #020617; color: white; border: 1px solid #334155; padding: 16px; border-radius: 10px; cursor: pointer; width: 100%; font-size: 15px; margin-bottom: 12px; text-align: left; transition: all 0.2s; display: block; text-decoration: none; }
-        .service-btn:hover { background: #1e293b; border-color: #3b82f6; transform: translateY(-1px); }
-        .service-title { font-weight: 600; color: #f8fafc; font-size: 15px; display: block; margin-bottom: 4px; }
-        .service-desc { font-size: 12px; color: #94a3b8; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { background: #1c2541; padding: 25px; border-radius: 12px; border: 1px solid #3a506b; width: 100%; max-width: 550px; text-align: center; }
+        h1 { color: #ffb703; font-size: 22px; margin-bottom: 8px; }
+        p { color: #8d99ae; font-size: 13px; margin-bottom: 20px; }
+        .service-btn { background: #0b132b; color: white; border: 1px solid #3a506b; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; margin-bottom: 12px; text-align: left; transition: 0.2s; display: block; text-decoration: none; }
+        .service-btn:hover { background: #ffb703; color: #0b132b; border-color: #ffb703; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h1>Catálogo de Soluções</h1>
-        <p>Selecione a modalidade de serviço desejada para o seu caso:</p>
+        <h1>📦 Catálogo de Serviços</h1>
+        <p>Escolha o tipo de serviço que deseja contratar:</p>
         <form action="/etapa3" method="POST">
             {% for serv in servicos %}
             <button name="servico" value="{{ serv.titulo }}" class="service-btn">
-                <span class="service-title">{{ serv.titulo }}</span>
-                <span class="service-desc">{{ serv.desc }}</span>
+                <strong>{{ serv.titulo }}</strong><br>
+                <span style="font-size: 12px; color: #8d99ae; font-weight: normal;">{{ serv.desc }}</span>
             </button>
             {% endfor %}
         </form>
@@ -169,13 +157,13 @@ REDIRECT_TEMPLATE = '''
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecionando...</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: #060a17; color: #f8fafc; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .box { background: #0f172a; padding: 40px; border-radius: 16px; border: 1px solid #1e293b; width: 100%; max-width: 450px; text-align: center; }
-        .spinner { border: 3px solid #1e293b; border-top: 3px solid #3b82f6; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { background: #1c2541; padding: 40px; border-radius: 12px; border: 1px solid #3a506b; width: 100%; max-width: 450px; text-align: center; }
+        .spinner { border: 4px solid #3a506b; border-top: 4px solid #ffb703; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        h1 { color: #f8fafc; font-size: 20px; margin-bottom: 10px; font-weight: 600; }
-        p { color: #94a3b8; font-size: 14px; line-height: 1.5; }
+        h1 { color: #ffb703; font-size: 22px; margin-bottom: 15px; }
+        p { color: #8d99ae; font-size: 14px; line-height: 1.5; }
     </style>
     <script>
         setTimeout(function() { window.location.href = "{{ whatsapp_url }}"; }, 3500);
@@ -184,8 +172,8 @@ REDIRECT_TEMPLATE = '''
 <body>
     <div class="box">
         <div class="spinner"></div>
-        <h1>Processando Solicitação</h1>
-        <p>Encaminhando você para um consultor especialista da Converis via WhatsApp...</p>
+        <h1>Tudo pronto!</h1>
+        <p>A ser encaminhado para um consultor especialista da Converis via WhatsApp...</p>
     </div>
 </body>
 </html>
@@ -197,145 +185,135 @@ PANEL_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS - Painel de Gestão Corporativa</title>
+    <title>CONVERIS - Painel da Equipa</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: #060a17; color: #f8fafc; margin: 0; padding: 0; }
-        header { background: #0f172a; padding: 15px 30px; border-bottom: 1px solid #1e293b; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b132b; color: #ffffff; margin: 0; padding: 0; }
+        header { background: #0b132b; padding: 15px 20px; border-bottom: 2px solid #ffb703; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .logo-area { display: flex; align-items: center; gap: 12px; }
-        .logo-badge { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+        .logo-badge { background: #7209b7; color: white; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; }
         .nav-tools { display: flex; gap: 8px; flex-wrap: wrap; }
-        .container { max-width: 1200px; margin: 25px auto; padding: 0 15px; }
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .card-metric { background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #1e293b; }
-        .card-metric h3 { margin: 0 0 8px 0; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-        .card-metric .value { font-size: 24px; font-weight: 700; }
-        .section-box { background: #0f172a; padding: 24px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #1e293b; }
-        .section-box h3 { margin-top: 0; color: #f8fafc; font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; }
-        .lead-card { background: #020617; border: 1px solid #1e293b; padding: 16px; border-radius: 10px; margin-bottom: 12px; transition: border-color 0.2s; }
-        .lead-card:hover { border-color: #334155; }
-        .btn-whats { background: #10b981; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; }
-        .btn-whats:hover { background: #059669; }
-        .btn-action { background: #3b82f6; color: white; padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 10px; }
-        .btn-action:hover { background: #2563eb; }
-        .btn-tool { background: #1e293b; color: #f8fafc; padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 500; border: 1px solid #334155; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
-        .btn-tool:hover { background: #334155; }
-        .badge-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .badge-prevenda { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
-        .badge-vendas { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .badge-fechado { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .container { max-width: 1100px; margin: 15px auto; padding: 10px; }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .card-metric { background: #1c2541; padding: 16px; border-radius: 8px; border: 1px solid #3a506b; }
+        .card-metric h3 { margin: 0 0 8px 0; font-size: 11px; color: #8d99ae; }
+        .card-metric .value { font-size: 20px; font-weight: bold; }
+        .section-box { background: #1c2541; padding: 18px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #3a506b; }
+        .section-box h3 { margin-top: 0; color: #ffb703; font-size: 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #3a506b; padding-bottom: 8px; }
+        .lead-card { background: #0b132b; border: 1px solid #3a506b; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .btn-whats { background: #2ec4b6; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; }
+        .btn-action { background: #ffb703; color: #0b132b; padding: 6px 12px; border-radius: 4px; border: none; font-size: 12px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 5px; }
+        .btn-tool { background: #3a506b; color: #ffffff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; border: 1px solid #ffb703; display: inline-flex; align-items: center; gap: 4px; }
+        .badge-status { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .badge-prevenda { background: #ffb703; color: #0b132b; }
+        .badge-vendas { background: #4cc9f0; color: #0b132b; }
+        .badge-fechado { background: #7209b7; color: white; }
     </style>
 </head>
 <body>
     <header>
         <div class="logo-area">
-            <div class="logo-badge">C</div>
+            <div class="logo-badge">∞</div>
             <div>
-                <h2 style="margin:0; font-size:16px; font-weight:600;">CONVERIS CRM</h2>
-                <span style="font-size:11px; color: #94a3b8;">Gestão de Operações & Leads</span>
+                <h2 style="margin:0; font-size:18px;">CONVERIS CRM</h2>
+                <span style="font-size:11px; color: #8d99ae;">PAINEL DE GESTÃO INTEGRADA</span>
             </div>
         </div>
         <div class="nav-tools">
             <a href="/" class="btn-tool">🏠 Início</a>
             <a href="/catalogo" class="btn-tool">📦 Catálogo</a>
             <a href="/treinamento" class="btn-tool">🎓 Treinamento</a>
-            <a href="/chat_equipa" class="btn-tool">💬 Chat Interno</a>
-            <a href="/dre" class="btn-tool" style="border-color: #3b82f6; color: #60a5fa;">📊 DRE Corporativa</a>
+            <a href="/chat_equipa" class="btn-tool">💬 Chat ao Vivo</a>
+            <a href="/dre" class="btn-tool" style="border-color: #2ec4b6;">📊 DRE Corporativa</a>
         </div>
     </header>
 
     <div class="container">
         <div class="section-box">
-            <h3>📈 Indicadores de Desempenho (Dashboard)</h3>
+            <h3>🏠 Dashboard - Resumo Geral</h3>
             <div class="grid-cards" style="margin-bottom:0;">
                 <div class="card-metric">
-                    <h3>⏳ Pré-Venda (Espera)</h3>
-                    <div class="value" style="color: #facc15;">{{ total_prevenda }}</div>
+                    <h3>⏳ PRÉ-VENDA (ESPERA)</h3>
+                    <div class="value" style="color: #ffb703;">{{ total_prevenda }}</div>
                 </div>
                 <div class="card-metric">
-                    <h3>🤝 Em Negociação (Vendas)</h3>
-                    <div class="value" style="color: #60a5fa;">{{ total_vendas }}</div>
+                    <h3>🤝 VENDAS (EM ATENDIMENTO)</h3>
+                    <div class="value" style="color: #4cc9f0;">{{ total_vendas }}</div>
                 </div>
                 <div class="card-metric">
-                    <h3>✅ Contratos Fechados</h3>
-                    <div class="value" style="color: #34d399;">{{ total_fechados }}</div>
+                    <h3>✅ CONCLUÍDAS / CONTRATOS</h3>
+                    <div class="value" style="color: #2ec4b6;">{{ total_fechados }}</div>
                 </div>
                 <div class="card-metric">
-                    <h3>💰 Faturamento Bruto</h3>
-                    <div class="value" style="color: #38bdf8;">R$ {{ "%.2f"|format(faturamento) }}</div>
+                    <h3>💰 FATURAMENTO BRUTO</h3>
+                    <div class="value" style="color: #ffb703;">R$ {{ "%.2f"|format(faturamento) }}</div>
                 </div>
             </div>
         </div>
 
         <div class="section-box">
-            <h3>📋 Pipeline de Atendimento</h3>
+            <h3>📋 Gestão de Leads & Funil de Atendimento</h3>
             
-            <h4 style="color: #facc15; font-size: 13px; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px;">⏳ Pré-Venda (Aguardando Contato Inicial)</h4>
+            <h4 style="color: #ffb703; font-size: 14px; margin-bottom: 8px;">⏳ Pré-Venda (Aguardando Primeiro Contato)</h4>
             {% if leads_prevenda %}
                 {% for lead in leads_prevenda %}
-                <div class="lead-card" style="border-left: 3px solid #facc15;">
+                <div class="lead-card" style="border-left: 4px solid #ffb703;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="font-size: 15px;">{{ lead['nome'] }}</strong>
+                        <strong>{{ lead['nome'] }}</strong>
                         <span class="badge-status badge-prevenda">{{ lead['status'] }}</span>
                     </div>
-                    <div style="margin-top: 8px; color: #94a3b8; font-size: 13px; display: grid; gap: 3px;">
-                        <span>📁 <strong>Serviço:</strong> {{ lead['servico'] }}</span>
-                        <span>📞 <strong>Telefone:</strong> {{ lead['telefone'] }}</span>
-                        <span>📝 <strong>Minuta:</strong> {{ lead['tipo_contrato'] }}</span>
-                    </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
-                        <a href="https://wa.me/{{ lead['telefone'] }}?text=Olá%20{{ lead['nome'] }},%20sou%20da%20Converis." target="_blank" class="btn-whats">📱 Abrir WhatsApp</a>
-                        <a href="/atualizar_status/{{ lead['id'] }}/Vendas" class="btn-action">🤝 Mover para Vendas</a>
+                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead['servico'] }}</span><br>
+                    <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead['telefone'] }}</span><br>
+                    <span style="color: #4cc9f0; font-size: 12px;">📝 Contrato: {{ lead['tipo_contrato'] }}</span>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                        <a href="https://wa.me/{{ lead['telefone'] }}?text=Olá%20{{ lead['nome'] }},%20sou%20da%20Converis." target="_blank" class="btn-whats">📱 WhatsApp</a>
+                        <a href="/atualizar_status/{{ lead['id'] }}/Vendas" class="btn-action">🤝 Mover p/ Vendas</a>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="color: #64748b; font-size: 13px; font-style: italic; margin: 5px 0 15px 0;">Nenhum lead aguardando em pré-venda.</p>
+                <p style="color: #8d99ae; font-size: 12px; font-style: italic;">Nenhum lead em Pré-Venda.</p>
             {% endif %}
 
-            <h4 style="color: #60a5fa; font-size: 13px; margin-top: 25px; text-transform: uppercase; letter-spacing: 0.5px;">🤝 Vendas (Negociação em Andamento)</h4>
+            <h4 style="color: #4cc9f0; font-size: 14px; margin-top: 25px; margin-bottom: 8px;">🤝 Vendas (Em Negociação Ativa)</h4>
             {% if leads_vendas %}
                 {% for lead in leads_vendas %}
-                <div class="lead-card" style="border-left: 3px solid #60a5fa;">
+                <div class="lead-card" style="border-left: 4px solid #4cc9f0;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="font-size: 15px;">{{ lead['nome'] }}</strong>
+                        <strong>{{ lead['nome'] }}</strong>
                         <span class="badge-status badge-vendas">{{ lead['status'] }}</span>
                     </div>
-                    <div style="margin-top: 8px; color: #94a3b8; font-size: 13px; display: grid; gap: 3px;">
-                        <span>📁 <strong>Serviço:</strong> {{ lead['servico'] }}</span>
-                        <span>📞 <strong>Telefone:</strong> {{ lead['telefone'] }}</span>
-                        <span style="color: #38bdf8; font-weight: 600;">💰 Valor Proposta: R$ {{ "%.2f"|format(lead['valor']) }}</span>
-                    </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ lead['servico'] }}</span><br>
+                    <span style="color: #8d99ae; font-size: 12px;">📞 Tel: {{ lead['telefone'] }}</span><br>
+                    <div style="color: #ffb703; font-weight: bold; margin-top: 4px;">Valor: R$ {{ "%.2f"|format(lead['valor']) }}</div>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
                         <a href="https://wa.me/{{ lead['telefone'] }}" target="_blank" class="btn-whats">📱 WhatsApp</a>
-                        <a href="/atualizar_status/{{ lead['id'] }}/Contrato_Fechado" class="btn-action" style="background: #10b981;">✅ Concluir / Fechar Contrato</a>
+                        <a href="/atualizar_status/{{ lead['id'] }}/Contrato_Fechado" class="btn-action" style="background: #2ec4b6; color: #0b132b;">✅ Concluir / Fechar Contrato</a>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="color: #64748b; font-size: 13px; font-style: italic; margin: 5px 0 15px 0;">Nenhum lead em fase de vendas ativa.</p>
+                <p style="color: #8d99ae; font-size: 12px; font-style: italic;">Nenhum lead em fase de Vendas.</p>
             {% endif %}
 
-            <h4 style="color: #34d399; font-size: 13px; margin-top: 25px; text-transform: uppercase; letter-spacing: 0.5px;">📄 Contratos Fechados (Concluídos)</h4>
+            <h4 style="color: #2ec4b6; font-size: 14px; margin-top: 25px; margin-bottom: 8px;">📄 Contratos Fechados (Concluídas)</h4>
             {% if contratos_lista %}
                 {% for c in contratos_lista %}
-                <div class="lead-card" style="border-left: 3px solid #10b981;">
+                <div class="lead-card" style="border-left: 4px solid #7209b7;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="font-size: 15px;">{{ c['nome'] }}</strong>
+                        <strong>{{ c['nome'] }}</strong>
                         <span class="badge-status badge-fechado">Fechado</span>
                     </div>
-                    <div style="margin-top: 8px; color: #94a3b8; font-size: 13px; display: grid; gap: 3px;">
-                        <span>📁 <strong>Serviço:</strong> {{ c['servico'] }}</span>
-                        <span style="color: #34d399;">📄 <strong>Documento:</strong> {{ c['tipo_contrato'] }}</span>
-                        <span style="color: #f8fafc; font-weight: 600;">Valor Fechado: R$ {{ "%.2f"|format(c['valor']) }}</span>
-                    </div>
-                    <div style="margin-top: 12px;">
-                        <a href="/ver_contrato/{{ c['id'] }}" target="_blank" class="btn-action" style="background: #1e293b; border: 1px solid #334155;">👁️ Visualizar Contrato Emitido</a>
+                    <span style="color: #8d99ae; font-size: 12px;">📁 Serviço: {{ c['servico'] }}</span><br>
+                    <span style="color: #2ec4b6; font-size: 12px; font-weight: bold;">📄 Documento: {{ c['tipo_contrato'] }}</span><br>
+                    <span style="color: #ffb703; font-size: 12px;">Valor Fechado: R$ {{ "%.2f"|format(c['valor']) }}</span>
+                    <div style="margin-top: 10px;">
+                        <a href="/ver_contrato/{{ c['id'] }}" target="_blank" class="btn-action" style="background: #2ec4b6; color: #0b132b;">👁️ Ver Contrato Emitido</a>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="color: #64748b; font-size: 13px; font-style: italic; margin: 5px 0 0 0;">Nenhum contrato fechado registrado.</p>
+                <p style="color: #8d99ae; font-size: 12px; font-style: italic;">Nenhum contrato fechado ainda.</p>
             {% endif %}
         </div>
     </div>
@@ -351,55 +329,54 @@ DRE_TEMPLATE = '''
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONVERIS - DRE Corporativa</title>
     <style>
-        body { background-color: #060a17; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; }
-        .box { background: #0f172a; padding: 30px; border-radius: 16px; border: 1px solid #1e293b; max-width: 850px; margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
-        h1 { color: #f8fafc; font-size: 20px; margin-top: 0; border-bottom: 1px solid #1e293b; padding-bottom: 15px; font-weight: 600; }
+        body { background-color: #0b132b; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .box { background: #1c2541; padding: 25px; border-radius: 12px; border: 1px solid #3a506b; max-width: 800px; margin: 0 auto; }
+        h1 { color: #ffb703; font-size: 22px; margin-top: 0; border-bottom: 2px solid #3a506b; padding-bottom: 10px; }
         .dre-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .dre-table th, .dre-table td { padding: 14px; text-align: left; border-bottom: 1px solid #1e293b; font-size: 14px; }
-        .dre-table th { background-color: #020617; color: #38bdf8; font-weight: 600; }
-        .row-total { font-weight: 600; background-color: #020617; color: #f8fafc; }
-        .row-lucro { font-weight: 600; background-color: rgba(16, 185, 129, 0.1); color: #34d399; }
-        .btn-voltar { background: #3b82f6; color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 25px; font-size: 13px; }
-        .btn-voltar:hover { background: #2563eb; }
+        .dre-table th, .dre-table td { padding: 12px; text-align: left; border-bottom: 1px solid #3a506b; }
+        .dre-table th { background-color: #0b132b; color: #2ec4b6; }
+        .row-total { font-weight: bold; background-color: #0b132b; color: #ffb703; }
+        .row-lucro { font-weight: bold; background-color: #2ec4b6; color: #0b132b; }
+        .btn-voltar { background: #ffb703; color: #0b132b; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="box">
         <h1>📊 DRE Corporativa (Demonstração do Resultado do Exercício)</h1>
-        <p style="color: #94a3b8; font-size: 13px;">Relatório financeiro gerencial consolidado com base nos contratos fechados.</p>
+        <p style="color: #8d99ae;">Relatório financeiro em tempo real dos contratos fechados.</p>
         
         <table class="dre-table">
             <thead>
                 <tr>
-                    <th>Descrição do Indicador / Conta</th>
-                    <th style="text-align: right;">Montante (R$)</th>
+                    <th>Descrição do Item</th>
+                    <th style="text-align: right;">Valor (R$)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>(+) Receita Bruta Operacional</strong></td>
-                    <td style="text-align: right; color: #34d399; font-weight: 600;">R$ {{ "%.2f"|format(receita_bruta) }}</td>
+                    <td><strong>(+) Receita Bruta de Vendas (Contratos Fechados)</strong></td>
+                    <td style="text-align: right; color: #2ec4b6;">R$ {{ "%.2f"|format(receita_bruta) }}</td>
                 </tr>
                 <tr>
-                    <td>(-) Custos Operacionais Diretos Vinculados</td>
-                    <td style="text-align: right; color: #f87171;">R$ {{ "%.2f"|format(custos_totais) }}</td>
+                    <td>(-) Custos Operacionais Directos</td>
+                    <td style="text-align: right; color: #e63946;">R$ {{ "%.2f"|format(custos_totais) }}</td>
                 </tr>
                 <tr class="row-total">
-                    <td>(=) Resultado Bruto Operacional</td>
+                    <td>(=) Margem de Contribuição / Resultado Bruto</td>
                     <td style="text-align: right;">R$ {{ "%.2f"|format(lucro_liquido) }}</td>
                 </tr>
                 <tr>
-                    <td>(-) Provisão para Despesas Adm. e Tributárias (~10%)</td>
-                    <td style="text-align: right; color: #f87171;">R$ {{ "%.2f"|format(receita_bruta * 0.10) }}</td>
+                    <td>(-) Despesas Administrativas e Comercialização (Impostos/Taxas ~10%)</td>
+                    <td style="text-align: right; color: #e63946;">R$ {{ "%.2f"|format(receita_bruta * 0.10) }}</td>
                 </tr>
                 <tr class="row-lucro">
-                    <td>(=) LUCRO LÍQUIDO OPERACIONAL CONSOLIDADO</td>
+                    <td>(=) LUCRO LÍQUIDO OPERACIONAL</td>
                     <td style="text-align: right;">R$ {{ "%.2f"|format(lucro_liquido - (receita_bruta * 0.10)) }}</td>
                 </tr>
             </tbody>
         </table>
 
-        <a href="/painel" class="btn-voltar">← Retornar ao CRM</a>
+        <a href="/painel" class="btn-voltar">← Voltar ao CRM</a>
     </div>
 </body>
 </html>
@@ -411,35 +388,28 @@ CONTRATO_VIEW_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS - Emissão de Instrumento Jurídico</title>
+    <title>CONVERIS - Contrato Gerado</title>
     <style>
-        body { background-color: #060a17; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; padding: 25px; display: flex; justify-content: center; }
-        .contract-box { background: #0f172a; padding: 40px; border-radius: 16px; border: 1px solid #1e293b; width: 100%; max-width: 750px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
-        h1 { color: #f8fafc; font-size: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 15px; margin-top: 0; font-weight: 600; }
-        p { line-height: 1.6; color: #cbd5e1; font-size: 14px; }
-        .meta-info { background: #020617; padding: 15px; border-radius: 8px; border: 1px solid #1e293b; margin-bottom: 20px; }
-        .btn-voltar { background: #3b82f6; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 25px; font-size: 13px; }
-        .btn-voltar:hover { background: #2563eb; }
+        body { background-color: #0b132b; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .contract-box { background: #1c2541; padding: 30px; border-radius: 12px; border: 1px solid #3a506b; width: 100%; max-width: 700px; }
+        h1 { color: #ffb703; font-size: 22px; border-bottom: 2px solid #3a506b; padding-bottom: 10px; margin-top: 0; }
+        p { line-height: 1.6; color: #d8dee9; font-size: 14px; }
+        .btn-voltar { background: #ffb703; color: #0b132b; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="contract-box">
-        <h1>📄 CONVERIS | {{ lead['tipo_contrato'] }}</h1>
-        <div class="meta-info">
-            <p style="margin: 0 0 5px 0;"><strong>Contratante (Cliente):</strong> {{ lead['nome'] }}</p>
-            <p style="margin: 0 0 5px 0;"><strong>Telefone / WhatsApp:</strong> {{ lead['telefone'] }}</p>
-            <p style="margin: 0;"><strong>Objeto Principal:</strong> {{ lead['servico'] }}</p>
-        </div>
-        
-        <p><strong>CLÁUSULA PRIMEIRA - DO OBJETO:</strong> O presente instrumento tem como objeto a prestação de serviços especializados de assessoria financeira e jurídica referentes a <em>{{ lead['servico'] }}</em>, prestados pela CONVERIS SOLUÇÕES FINANCEIRAS.</p>
-        <p><strong>CLÁUSULA SEGUNDA - DOS HONORÁRIOS:</strong> O valor acordado para a execução dos serviços descritos é de R$ {{ "%.2f"|format(lead['valor']) }}, quitados conforme as condições comerciais pactuadas.</p>
-        <p><strong>CLÁUSULA TERCEIRA - DAS OBRIGAÇÕES:</strong> A CONVERIS compromete-se a empenhar todos os recursos técnicos e legais disponíveis visando o pleno atendimento das expectativas contratuais do cliente.</p>
-        
-        <div style="text-align: center; color: #34d399; font-weight: 600; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 12px; border-radius: 8px; margin-top: 25px; font-size: 13px;">
-            ✅ Documento gerado digitalmente e autenticado pelo sistema corporativo Converis.
-        </div>
-        
-        <a href="/painel" class="btn-voltar">← Retornar ao CRM</a>
+        <h1>📄 {{ lead['tipo_contrato'] }}</h1>
+        <p><strong>Contratante (Cliente):</strong> {{ lead['nome'] }}</p>
+        <p><strong>Telefone / WhatsApp:</strong> {{ lead['telefone'] }}</p>
+        <p><strong>Serviço Contratado:</strong> {{ lead['servico'] }}</p>
+        <hr style="border-color: #3a506b; margin: 20px 0;">
+        <p><strong>CLÁUSULA PRIMEIRA - DO OBJETO:</strong> O presente instrumento tem como objeto a prestação de serviços especializados de assessoria financeira referentes a <em>{{ lead['servico'] }}</em>, prestados pela CONVERIS SOLUÇÕES FINANCEIRAS.</p>
+        <p><strong>CLÁUSULA SEGUNDA - DOS HONORÁRIOS:</strong> O valor acordado para a prestação dos serviços é de R$ {{ "%.2f"|format(lead['valor']) }}, pagos conforme acerto prévio.</p>
+        <p><strong>CLÁUSULA TERCEIRA - DAS OBRIGAÇÕES:</strong> A CONVERIS compromete-se a envidar todos os esforços técnicos e legais para o sucesso da demanda do cliente.</p>
+        <br>
+        <p style="text-align: center; color: #2ec4b6; font-weight: bold; border: 1px dashed #2ec4b6; padding: 10px; border-radius: 6px;">✅ Documento gerado eletronicamente e validado pelo CRM Converis.</p>
+        <a href="/painel" class="btn-voltar">← Voltar ao CRM</a>
     </div>
 </body>
 </html>
@@ -453,30 +423,29 @@ TREINAMENTO_TEMPLATE = '''
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONVERIS - Central de Treinamento</title>
     <style>
-        body { background-color: #060a17; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; padding: 25px; }
-        .box { background: #0f172a; padding: 30px; border-radius: 16px; border: 1px solid #1e293b; max-width: 850px; margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
-        h1 { color: #f8fafc; font-size: 20px; margin-top: 0; font-weight: 600; }
-        .card-aula { background: #020617; border: 1px solid #1e293b; padding: 18px; border-radius: 10px; margin-bottom: 15px; }
-        .btn-voltar { background: #3b82f6; color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 15px; font-size: 13px; }
-        .btn-voltar:hover { background: #2563eb; }
+        body { background-color: #0b132b; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .box { background: #1c2541; padding: 25px; border-radius: 12px; border: 1px solid #3a506b; max-width: 800px; margin: 0 auto; }
+        h1 { color: #ffb703; font-size: 22px; margin-top: 0; }
+        .card-aula { background: #0b132b; border: 1px solid #3a506b; padding: 15px; border-radius: 8px; margin-bottom: 12px; }
+        .btn-voltar { background: #ffb703; color: #0b132b; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h1>🎓 Central de Treinamento & Scripts Comerciais</h1>
-        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 25px;">Diretrizes operacionais e abordagens padronizadas para maximização da conversão de leads.</p>
+        <h1>🎓 Central de Treinamento & Scripts Comercial</h1>
+        <p style="color: #8d99ae;">Diretrizes de atendimento e abordagens para conversão de leads.</p>
         
         <div class="card-aula">
-            <h3 style="color: #38bdf8; margin-top: 0; font-size: 15px;">1. Abordagem Inicial - Lei do Superendividamento</h3>
-            <p style="font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 0;">"Olá! Analisamos o seu perfil financeiro. O nosso foco principal é blindar o seu mínimo existencial e repactuar o conjunto das suas dívidas sob condições justas e sustentáveis..."</p>
+            <h3 style="color: #2ec4b6; margin-top: 0;">1. Abordagem Inicial - Superendividamento</h3>
+            <p style="font-size: 13px; color: #d8dee9;">"Olá! Analisamos a sua solicitação. O nosso objetivo é proteger o seu mínimo existencial e repactuar os débitos em condições sustentáveis..."</p>
         </div>
 
         <div class="card-aula">
-            <h3 style="color: #38bdf8; margin-top: 0; font-size: 15px;">2. Tratamento de Objeções - Financiamentos em Atraso</h3>
-            <p style="font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 0;">"A revisão contratual tem por objetivo recalcular encargos e taxas abusivas incidentes, viabilizando a regularização ou quitação viável do saldo devedor..."</p>
+            <h3 style="color: #2ec4b6; margin-top: 0;">2. Quebra de Objeções em Financiamentos</h3>
+            <p style="font-size: 13px; color: #d8dee9;">"A revisão contratual visa recalcular encargos abusivos para viabilizar a quitação ou regularização das parcelas atrasadas..."</p>
         </div>
 
-        <a href="/painel" class="btn-voltar">← Retornar ao CRM</a>
+        <a href="/painel" class="btn-voltar">← Voltar ao CRM</a>
     </div>
 </body>
 </html>
@@ -488,39 +457,36 @@ CHAT_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONVERIS - Chat Corporativo Interno</title>
+    <title>CONVERIS - Chat ao Vivo</title>
     <style>
-        body { background-color: #060a17; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; padding: 25px; }
-        .box { background: #0f172a; padding: 30px; border-radius: 16px; border: 1px solid #1e293b; max-width: 650px; margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
-        h1 { color: #f8fafc; font-size: 20px; margin-top: 0; font-weight: 600; }
-        .chat-box { background: #020617; border: 1px solid #1e293b; padding: 15px; border-radius: 10px; height: 320px; overflow-y: auto; margin-bottom: 18px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { font-size: 13px; padding: 10px 12px; background: #0f172a; border-radius: 8px; border: 1px solid #1e293b; }
-        .msg strong { color: #38bdf8; }
-        .msg span { font-size: 11px; color: #64748b; float: right; }
-        input, button { padding: 12px; border-radius: 8px; border: 1px solid #334155; }
-        input { background: #020617; color: white; width: 72%; font-size: 14px; }
-        input:focus { outline: none; border-color: #3b82f6; }
-        button { background: #3b82f6; color: white; font-weight: 600; width: 25%; cursor: pointer; font-size: 14px; }
-        button:hover { background: #2563eb; }
-        .btn-voltar { background: #1e293b; color: #f8fafc; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-block; margin-top: 15px; font-size: 13px; border: 1px solid #334155; }
+        body { background-color: #0b132b; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .box { background: #1c2541; padding: 25px; border-radius: 12px; border: 1px solid #3a506b; max-width: 600px; margin: 0 auto; }
+        h1 { color: #ffb703; font-size: 22px; margin-top: 0; }
+        .chat-box { background: #0b132b; border: 1px solid #3a506b; padding: 15px; border-radius: 8px; height: 280px; overflow-y: auto; margin-bottom: 15px; }
+        .msg { margin-bottom: 10px; font-size: 13px; }
+        .msg strong { color: #2ec4b6; }
+        .msg span { font-size: 10px; color: #8d99ae; margin-left: 5px; }
+        input, button { padding: 10px; border-radius: 6px; border: 1px solid #3a506b; }
+        input { background: #0b132b; color: white; width: 70%; }
+        button { background: #ffb703; color: #0b132b; font-weight: bold; width: 27%; cursor: pointer; }
+        .btn-voltar { background: #3a506b; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h1>💬 Canal de Comunicação Interna (Equipe)</h1>
+        <h1>💬 Chat ao Vivo da Equipa</h1>
         <div class="chat-box">
             {% for msg in mensagens %}
             <div class="msg">
-                <strong>{{ msg['autor'] }}:</strong> {{ msg['mensagem'] }} 
-                <span>{{ msg['data_envio'] }}</span>
+                <strong>{{ msg['autor'] }}:</strong> {{ msg['mensagem'] }} <span>({{ msg['data_envio'] }})</span>
             </div>
             {% endfor %}
         </div>
         <form action="/enviar_chat" method="POST" style="display: flex; gap: 3%;">
-            <input type="text" name="mensagem" placeholder="Digite uma mensagem para a equipe..." required autocomplete="off">
+            <input type="text" name="mensagem" placeholder="Digite uma mensagem..." required>
             <button type="submit">Enviar</button>
         </form>
-        <a href="/painel" class="btn-voltar">← Retornar ao CRM</a>
+        <a href="/painel" class="btn-voltar">← Voltar ao CRM</a>
     </div>
 </body>
 </html>
@@ -560,4 +526,95 @@ def etapa3():
     whatsapp_url = f"https://wa.me/5551999797731?text={mensagem}"
     return render_template_string(REDIRECT_TEMPLATE, whatsapp_url=whatsapp_url)
 
-@app.route('/
+@app.route('/painel')
+def painel_equipe():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM leads WHERE status = 'Pré-Venda' ORDER BY id DESC")
+    leads_prevenda = cursor.fetchall()
+    
+    cursor.execute("SELECT * FROM leads WHERE status = 'Vendas' ORDER BY id DESC")
+    leads_vendas = cursor.fetchall()
+    
+    cursor.execute("SELECT * FROM leads WHERE status = 'Contrato Fechado' ORDER BY id DESC")
+    contratos_lista = cursor.fetchall()
+    
+    cursor.execute("SELECT SUM(valor) FROM leads WHERE status = 'Contrato Fechado'")
+    res = cursor.fetchone()[0]
+    faturamento = res if res else 0.0
+    
+    conn.close()
+    
+    return render_template_string(
+        PANEL_TEMPLATE, 
+        leads_prevenda=leads_prevenda,
+        leads_vendas=leads_vendas,
+        contratos_lista=contratos_lista,
+        total_prevenda=len(leads_prevenda),
+        total_vendas=len(leads_vendas),
+        total_fechados=len(contratos_lista),
+        faturamento=faturamento
+    )
+
+@app.route('/dre')
+def dre():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT SUM(valor) as receita, SUM(custo) as custo FROM leads WHERE status = 'Contrato Fechado'")
+    row = cursor.fetchone()
+    conn.close()
+    
+    receita_bruta = row['receita'] if row['receita'] else 0.0
+    custos_totais = row['custo'] if row['custo'] else 0.0
+    lucro_liquido = receita_bruta - custos_totais
+    
+    return render_template_string(DRE_TEMPLATE, receita_bruta=receita_bruta, custos_totais=custos_totais, lucro_liquido=lucro_liquido)
+
+@app.route('/treinamento')
+def treinamento():
+    return render_template_string(TREINAMENTO_TEMPLATE)
+
+@app.route('/chat_equipa')
+def chat_equipa():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM chat_mensagens ORDER BY id DESC LIMIT 20")
+    mensagens = cursor.fetchall()
+    conn.close()
+    return render_template_string(CHAT_TEMPLATE, mensagens=reversed(mensagens))
+
+@app.route('/enviar_chat', methods=['POST'])
+def enviar_chat():
+    msg = request.form.get('mensagem')
+    if msg:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO chat_mensagens (autor, mensagem) VALUES (?, ?)", ("Aquiles", msg))
+        conn.commit()
+        conn.close()
+    return redirect(url_for('chat_equipa'))
+
+@app.route('/atualizar_status/<int:lead_id>/<path:novo_status>')
+def atualizar_status(lead_id, novo_status):
+    status_formatado = novo_status.replace('_', ' ')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE leads SET status = ? WHERE id = ?", (status_formatado, lead_id))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('painel_equipe'))
+
+@app.route('/ver_contrato/<int:lead_id>')
+def ver_contrato(lead_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM leads WHERE id = ?", (lead_id,))
+    lead = cursor.fetchone()
+    conn.close()
+    if lead:
+        return render_template_string(CONTRATO_VIEW_TEMPLATE, lead=lead)
+    return "Contrato não encontrado", 404
+
+if __name__ == '__main__':
+    app.run(port=5000)                              
